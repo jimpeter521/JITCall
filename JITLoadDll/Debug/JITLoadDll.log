@@ -1,0 +1,4 @@
+﻿  JITLoadDll.cpp
+C:\Users\Steve\source\repos\JITLoadDll\JITLoadDll\JITCall.h(33,25): warning C4200:  nonstandard extension used: zero-sized array in struct/union
+C:\Users\Steve\source\repos\JITLoadDll\JITLoadDll\JITCall.h(33,25): message :  This member will be ignored by a defaulted constructor or copy/move assignment operator
+  JITLoadDll.vcxproj -> C:\Users\Steve\source\repos\JITLoadDll\Debug\JITLoadDll.exe

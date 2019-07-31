@@ -1,0 +1,56 @@
+﻿  arch.cpp
+  assembler.cpp
+  builder.cpp
+  callconv.cpp
+  codeholder.cpp
+  compiler.cpp
+  constpool.cpp
+  cpuinfo.cpp
+  emitter.cpp
+  func.cpp
+  globals.cpp
+  inst.cpp
+  jitallocator.cpp
+  jitruntime.cpp
+  logging.cpp
+  operand.cpp
+  osutils.cpp
+  ralocal.cpp
+  rapass.cpp
+  rastack.cpp
+  Compiling...
+  string.cpp
+  support.cpp
+  target.cpp
+  type.cpp
+  virtmem.cpp
+  zone.cpp
+  zonehash.cpp
+  zonelist.cpp
+  zonestack.cpp
+  zonetree.cpp
+  zonevector.cpp
+  x86assembler.cpp
+  x86builder.cpp
+  x86callconv.cpp
+  x86compiler.cpp
+  x86features.cpp
+  x86instapi.cpp
+  x86instdb.cpp
+  x86internal.cpp
+  x86logging.cpp
+  Compiling...
+  x86operand.cpp
+  x86rapass.cpp
+  JITCall.cpp
+C:\Users\Steve\source\repos\JITLoadDll\JITLoadDll\JITCall.h(33,25): warning C4200:  nonstandard extension used: zero-sized array in struct/union
+  JITLoadDll.cpp
+C:\Users\Steve\source\repos\JITLoadDll\JITLoadDll\JITCall.h(33,25): message :  This member will be ignored by a defaulted constructor or copy/move assignment operator
+C:\Users\Steve\source\repos\JITLoadDll\JITLoadDll\JITCall.h(33,25): warning C4200:  nonstandard extension used: zero-sized array in struct/union
+C:\Users\Steve\source\repos\JITLoadDll\JITLoadDll\JITCall.h(33,25): message :  This member will be ignored by a defaulted constructor or copy/move assignment operator
+     Creating library C:\Users\Steve\source\repos\JITLoadDll\Release\JITLoadDll.lib and object C:\Users\Steve\source\repos\JITLoadDll\Release\JITLoadDll.exp
+  Generating code
+  Previous IPDB not found, fall back to full compilation.
+  All 2731 functions were compiled because no usable IPDB/IOBJ from previous compilation was found.
+  Finished generating code
+  JITLoadDll.vcxproj -> C:\Users\Steve\source\repos\JITLoadDll\Release\JITLoadDll.exe
