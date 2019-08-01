@@ -1,5 +1,6 @@
 #include "JITCall.hpp"
 #include "CommandParser.hpp"
+#include "MenuGui.h"
 
 #include <stdio.h>
 
@@ -19,6 +20,9 @@ int main()
 			printf("Arg %d: %s\n", i + 1, cmdParser.GetArg(i).c_str());
 		}
 	}
+
+	Menu menu;
+	menu.InitWindow();
 
 	JITCall jit((char*)&test);
 	JITCall::tJitCall pCall = jit.getJitFunc("int", { "int", "float" , "bool"});
