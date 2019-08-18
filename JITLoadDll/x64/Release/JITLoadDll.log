@@ -1,10 +1,9 @@
-﻿  JITLoadDll.cpp
-C:\Users\Steve\source\repos\JITLoadDll\JITLoadDll\JITCall.hpp(33,25): warning C4200:  nonstandard extension used: zero-sized array in struct/union
-C:\Users\Steve\source\repos\JITLoadDll\JITLoadDll\JITCall.hpp(33,25): message :  This member will be ignored by a defaulted constructor or copy/move assignment operator
+﻿  MainWindow.cpp
+C:\Users\Steve\source\repos\JITLoadDll\JITLoadDll\MainWindow.cpp(203,42): warning C4267:  'return': conversion from 'size_t' to 'uint8_t', possible loss of data
      Creating library C:\Users\Steve\source\repos\JITLoadDll\x64\Release\JITLoadDll.lib and object C:\Users\Steve\source\repos\JITLoadDll\x64\Release\JITLoadDll.exp
   Generating code
-  1 of 2777 functions (<0.1%) were compiled, the rest were copied from previous compilation.
+  3 of 3883 functions (<0.1%) were compiled, the rest were copied from previous compilation.
     0 functions were new in current compilation
-    16 functions had inline decision re-evaluated but remain unchanged
+    27 functions had inline decision re-evaluated but remain unchanged
   Finished generating code
   JITLoadDll.vcxproj -> C:\Users\Steve\source\repos\JITLoadDll\x64\Release\JITLoadDll.exe

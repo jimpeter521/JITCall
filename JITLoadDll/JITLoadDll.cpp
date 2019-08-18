@@ -1,11 +1,11 @@
 #include "JITCall.hpp"
 #include "CommandParser.hpp"
-#include "MenuGui.h"
+#include "MainWindow.h"
 
 #include <stdio.h>
 
-int test(int i, float j, bool k) {
-	printf("One:%d Two:%f Three: %d\n", i, j, k);
+int test(int i, float j) {
+	printf("One:%d Two:%f\n", i, j);
 	return 0;
 }
 
@@ -21,17 +21,24 @@ int main()
 		}
 	}
 
-	Menu menu;
-	menu.InitWindow();
+	MainWindow window;
+	window.InitWindow();
 
 	JITCall jit((char*)&test);
-	JITCall::tJitCall pCall = jit.getJitFunc("int", { "int", "float" , "bool"});
+	const uint8_t paramCount = window.getParamCount();
+	std::vector<std::string> paramTypes;
+	JITCall::Parameters* params = (JITCall::Parameters*)(char*)new uint64_t[paramCount];
 
-	JITCall::Parameters* params = (JITCall::Parameters*)(char*)new uint64_t[2];
-	*(int*)params->getArgPtr(0) = 1;
-	*(float*)params->getArgPtr(1) = 1337.0;
-	*(bool*)params->getArgPtr(2) = true;
+	// build param list of types from GUI state
+	for (uint8_t i = 0; i < paramCount; i++) {
+		auto pstate = window.getParamState(i);
+		paramTypes.push_back(pstate.type);
+		*(uint64_t*)params->getArgPtr(i) = pstate.getPacked();
+	}
+
+	JITCall::tJitCall pCall = jit.getJitFunc("int", paramTypes);
 	pCall(params);
+	delete[] params;
 	getchar();
 }
 

@@ -2,6 +2,7 @@
 
 #pragma comment(lib, "d3d11.lib")
 #pragma comment(lib, "d3dcompiler.lib")
+#include "MainContents.h"
 
 #include <imgui.h>
 #include <examples/imgui_impl_win32.h>
@@ -12,18 +13,20 @@
 #include <tchar.h>
 #include <stdint.h>
 
-class Menu;
+class MainWindow;
 
 namespace hack {
-	static Menu* pMenu = nullptr;
+	static MainWindow* pWindow = nullptr;
 }
 
-class Menu {
+class MainWindow {
 public:
-	Menu();
+	MainWindow();
 	bool InitWindow();
-
+	
 	LONG_PTR WINAPI WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
+	MainContents::State::ParamState getParamState(const uint8_t idx) const;
+	uint8_t getParamCount() const;
 private:
 	bool CreateDeviceD3D(HWND hWnd);
 	void CleanupDeviceD3D();
@@ -39,8 +42,8 @@ private:
 extern LRESULT ImGui_ImplWin32_WndProcHandler(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
 static LRESULT WINAPI ForwardWndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 {
-	if (!hack::pMenu)
+	if (!hack::pWindow)
 		return 0;
 
-	return hack::pMenu->WndProc(hWnd, msg, wParam, lParam);
+	return hack::pWindow->WndProc(hWnd, msg, wParam, lParam);
 }

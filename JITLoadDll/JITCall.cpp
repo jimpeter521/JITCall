@@ -17,6 +17,8 @@ asmjit::CallConv::Id JITCall::getCallConv(const std::string& conv) {
 #define TYPEID_MATCH_STR_ELSEIF(var, T)  else if (var == #T) { return asmjit::Type::IdOfT<T>::kTypeId; }
 
 uint8_t JITCall::getTypeId(const std::string& type) {
+	// we only care about ptr value, size doesn't matter
+	// so just use a uintptr size for any type
 	if (type.find("*") != std::string::npos) {
 		return asmjit::Type::kIdUIntPtr;
 	}

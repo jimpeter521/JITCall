@@ -13,7 +13,7 @@ bool MainWindow::InitWindow() {
 	// Create application window
 	WNDCLASSEX wc = { sizeof(WNDCLASSEX), CS_CLASSDC, ForwardWndProc, 0L, 0L, GetModuleHandle(NULL), NULL, NULL, NULL, NULL, _T("JITLoadDll"), NULL };
 	::RegisterClassEx(&wc);
-	HWND hwnd = ::CreateWindow(wc.lpszClassName, _T("JITLoadDll"), WS_OVERLAPPEDWINDOW, 100, 100, 800, 600, NULL, NULL, wc.hInstance, NULL);
+	HWND hwnd = ::CreateWindow(wc.lpszClassName, _T("JITLoadDll"), WS_OVERLAPPEDWINDOW, 100, 100, 600, 400, NULL, NULL, wc.hInstance, NULL);
 
 	// Initialize Direct3D
 	if (!CreateDeviceD3D(hwnd))
@@ -72,8 +72,8 @@ bool MainWindow::InitWindow() {
 		
 		ImGuiWindowFlags winFlags = ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize;
 		{
-			ImGui::Begin("Choose Export", NULL, winFlags);                         
-			ImGui::Text("This is some useful text.");
+			ImGui::Begin("Choose Export", NULL, winFlags);
+			MainContents::Draw();
 			ImGui::End();
 		}
 
@@ -121,9 +121,6 @@ LONG_PTR WINAPI MainWindow::WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM l
 	case WM_DESTROY:
 		// Kill Window
 		::PostQuitMessage(0);
-
-		// Kill Terminal
-		ExitProcess(0);
 		return 0;
 	}
 	return ::DefWindowProc(hWnd, msg, wParam, lParam);
@@ -192,4 +189,16 @@ void MainWindow::CleanupRenderTarget()
 		m_pRenderTargetView->Release(); 
 		m_pRenderTargetView = NULL; 
 	}
+}
+
+MainContents::State::ParamState MainWindow::getParamState(const uint8_t idx) const
+{
+	if (idx >= MainContents::state.params.size())
+		return MainContents::State::ParamState();
+
+	return MainContents::state.params.at(idx);
+}
+
+uint8_t MainWindow::getParamCount() const {
+	return MainContents::state.params.size();
 }
