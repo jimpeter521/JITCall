@@ -21,15 +21,18 @@ namespace MainContents {
 			typedef uint64_t PackedType;
 			static const uint8_t valSize = sizeof(PackedType);
 
-			// imgui writes into value, so must alloc
+			// imgui writes into value
 			std::array<char, valSize> value;
 			const char* type = "";
+			bool showMem = false;
 
+			// Reinterpret data as packed type
 			PackedType getPacked() const {
 				return *(PackedType*)value.data();
 			}
 		};
 
+		const char* returnType = "";
 		MemoryEditor m_memEditor;
 		const char* cur_convention = data::calling_conventions[0];
 		std::vector<ParamState> params;
@@ -79,6 +82,20 @@ namespace MainContents {
 			ImGui::EndCombo();
 		}
 
+		// set combo string type on return value type
+		if (ImGui::BeginCombo("return type", state.returnType)) 
+		{
+			for (int n = 0; n < IM_ARRAYSIZE(data::types); n++)
+			{
+				bool is_selected = (state.returnType == data::types[n]);
+				if (ImGui::Selectable(data::types[n], is_selected))
+					state.returnType = data::types[n];
+				if (is_selected)
+					ImGui::SetItemDefaultFocus();
+			}
+			ImGui::EndCombo();
+		}
+
 		if (ImGui::Button("Add Parameter"))
 		{
 			state.params.push_back(State::ParamState());
@@ -93,7 +110,14 @@ namespace MainContents {
 			if (type != -1) {
 				ImGui::InputScalar((name + "val").c_str(), type, state.params.at(i).value.data());
 				ImGui::SameLine();
-				ImGui::Button(std::string((name + "Mem").c_str()).c_str());
+				if (ImGui::Button(std::string((name + "Mem").c_str()).c_str())) {
+					state.params.at(i).showMem = true;
+				}
+
+				// check if should draw editor, then if it's not open (been closed), reset flag
+				if (state.params.at(i).showMem && !state.m_memEditor.DrawWindow("Edit Memory", state.params.at(i).value.data(), State::ParamState::valSize)) {
+					state.params.at(i).showMem = false;
+				}
 				ImGui::SameLine();
 			}
 
@@ -113,6 +137,6 @@ namespace MainContents {
 		}
 
 		/*static unsigned char ram[0x1000] = { 0 };
-		m_memEditor.DrawWindow("Edit Memory", ram, 0x1000);*/
+		*/
 	}
 }

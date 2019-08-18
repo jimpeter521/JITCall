@@ -28,6 +28,7 @@ int main()
 	const uint8_t paramCount = window.getParamCount();
 	std::vector<std::string> paramTypes;
 	JITCall::Parameters* params = (JITCall::Parameters*)(char*)new uint64_t[paramCount];
+	memset(params, 0, ASMJIT_ARRAY_SIZE(params));
 
 	// build param list of types from GUI state
 	for (uint8_t i = 0; i < paramCount; i++) {
@@ -36,7 +37,7 @@ int main()
 		*(uint64_t*)params->getArgPtr(i) = pstate.getPacked();
 	}
 
-	JITCall::tJitCall pCall = jit.getJitFunc("int", paramTypes);
+	JITCall::tJitCall pCall = jit.getJitFunc(window.getReturnType(), paramTypes);
 	pCall(params);
 	delete[] params;
 	getchar();

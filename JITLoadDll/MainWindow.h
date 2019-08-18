@@ -26,6 +26,7 @@ public:
 	
 	LONG_PTR WINAPI WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
 	MainContents::State::ParamState getParamState(const uint8_t idx) const;
+	const char* getReturnType() const;
 	uint8_t getParamCount() const;
 private:
 	bool CreateDeviceD3D(HWND hWnd);

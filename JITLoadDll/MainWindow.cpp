@@ -202,3 +202,7 @@ MainContents::State::ParamState MainWindow::getParamState(const uint8_t idx) con
 uint8_t MainWindow::getParamCount() const {
 	return MainContents::state.params.size();
 }
+
+const char* MainWindow::getReturnType() const {
+	return MainContents::state.returnType;
+}
