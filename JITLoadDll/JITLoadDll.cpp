@@ -1,6 +1,6 @@
 #include "JITCall.hpp"
 #include "CommandParser.hpp"
-#include "MainWindow.h"
+#include "MainWindow.hpp"
 
 #include <stdio.h>
 
@@ -21,25 +21,33 @@ int main()
 		}
 	}
 
+	std::vector<JITCall::tJitCall> jitCalls;
+
 	MainWindow window;
+	window.OnNewFunction([&](const std::vector<FunctionEditor::State::ParamState>& paramStates, const char* retType) {
+		JITCall jit((char*)&test);
+		std::vector<std::string> paramTypes;
+		JITCall::Parameters* params = (JITCall::Parameters*)(char*)new uint64_t[paramStates.size()];
+		memset(params, 0, sizeof(uint64_t) * paramStates.size());
+
+		// build param list of types from GUI state
+		for (uint8_t i = 0; i < paramStates.size(); i++) {
+			auto pstate = paramStates.at(i);
+			paramTypes.push_back(pstate.type);
+			*(uint64_t*)params->getArgPtr(i) = pstate.getPacked();
+		}
+
+		JITCall::tJitCall pCall = jit.getJitFunc(retType, paramTypes);	
+		jitCalls.push_back(pCall);
+
+		std::cout << "Added a new JIT call" << std::endl;
+	});
+
 	window.InitWindow();
 
-	JITCall jit((char*)&test);
-	const uint8_t paramCount = window.getParamCount();
-	std::vector<std::string> paramTypes;
-	JITCall::Parameters* params = (JITCall::Parameters*)(char*)new uint64_t[paramCount];
-	memset(params, 0, ASMJIT_ARRAY_SIZE(params));
-
-	// build param list of types from GUI state
-	for (uint8_t i = 0; i < paramCount; i++) {
-		auto pstate = window.getParamState(i);
-		paramTypes.push_back(pstate.type);
-		*(uint64_t*)params->getArgPtr(i) = pstate.getPacked();
-	}
-
-	JITCall::tJitCall pCall = jit.getJitFunc(window.getReturnType(), paramTypes);
-	pCall(params);
-	delete[] params;
+	
+	//pCall(params);
+	//delete[] params;
 	getchar();
 }
 

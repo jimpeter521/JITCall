@@ -7,12 +7,13 @@
 #include <array>
 #include <regex>
 
-namespace MainContents {
+namespace FunctionEditor {
 	namespace data {
 		// can use == since static
 		static const char* calling_conventions[] = { "stdcall", "cdecl", "fastcall", };
 		static const char* types[] = { "char", "unsigned char", "int16_t", "uint16_t",
 			"int32_t", "uint32_t", "int64_t", "uint64_t", "float", "double"};
+		static const char* DEFAULT_TYPE = "";
 	}
 
 	struct State {
@@ -23,7 +24,7 @@ namespace MainContents {
 
 			// imgui writes into value
 			std::array<char, valSize> value;
-			const char* type = "";
+			const char* type = data::DEFAULT_TYPE;
 			bool showMem = false;
 
 			// Reinterpret data as packed type
@@ -32,10 +33,27 @@ namespace MainContents {
 			}
 		};
 
-		const char* returnType = "";
+		bool isValidEndState() {
+			if (returnType == data::DEFAULT_TYPE) {
+				return false;
+			}
+
+			for (const ParamState& p : params) {
+				if (p.type == data::DEFAULT_TYPE) {
+					return false;
+				}
+			}
+
+			// all other states are valid
+			return true;
+		}
+
+		const char* returnType = data::DEFAULT_TYPE;
 		MemoryEditor m_memEditor;
 		const char* cur_convention = data::calling_conventions[0];
 		std::vector<ParamState> params;
+
+		bool finished = false;
 	};
 
 	static State state;
@@ -136,7 +154,20 @@ namespace MainContents {
 			}
 		}
 
-		/*static unsigned char ram[0x1000] = { 0 };
-		*/
+		// Window thread checks for this
+		if (ImGui::Button("Close Function Editor"))
+		{
+			if (!state.isValidEndState()) {
+				ImGui::OpenPopup("TypeDefError");
+			} else {
+				state.finished = true;
+			}
+		}
+
+		if (ImGui::BeginPopup("TypeDefError"))
+		{
+			ImGui::TextColored(ImColor::HSV(356.09f, 68.05f, 66.27f), "%s", "Invalid State, Fill in all values");
+			ImGui::EndPopup();
+		}
 	}
 }

@@ -2,7 +2,7 @@
 
 #pragma comment(lib, "d3d11.lib")
 #pragma comment(lib, "d3dcompiler.lib")
-#include "MainContents.h"
+#include "FunctionEditor.hpp"
 
 #include <imgui.h>
 #include <examples/imgui_impl_win32.h>
@@ -12,6 +12,7 @@
 #include <dinput.h>
 #include <tchar.h>
 #include <stdint.h>
+#include <functional>
 
 class MainWindow;
 
@@ -21,23 +22,31 @@ namespace hack {
 
 class MainWindow {
 public:
+	typedef std::function<void(const std::vector<FunctionEditor::State::ParamState>& params, const char* retType)> tNewFunc;
+
 	MainWindow();
 	bool InitWindow();
 	
 	LONG_PTR WINAPI WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
-	MainContents::State::ParamState getParamState(const uint8_t idx) const;
+	void OnNewFunction(tNewFunc callback) { this->callback = callback; }
+private:
+	FunctionEditor::State::ParamState getParamState(const uint8_t idx) const;
 	const char* getReturnType() const;
 	uint8_t getParamCount() const;
-private:
+
+	void closeWindow() const;
 	bool CreateDeviceD3D(HWND hWnd);
 	void CleanupDeviceD3D();
 	void CreateRenderTarget();
 	void CleanupRenderTarget();
 
+	HWND m_hwnd;
 	ID3D11Device* m_pDevice;
 	ID3D11DeviceContext* m_pDeviceContext;
 	IDXGISwapChain* m_pSwapChain;
 	ID3D11RenderTargetView* m_pRenderTargetView;
+
+	tNewFunc callback;
 };
 
 extern LRESULT ImGui_ImplWin32_WndProcHandler(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);

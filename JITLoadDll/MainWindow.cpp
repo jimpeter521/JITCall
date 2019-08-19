@@ -1,4 +1,4 @@
-#include "MainWindow.h"
+#include "MainWindow.hpp"
 
 MainWindow::MainWindow() {
 	m_pDevice = nullptr;
@@ -13,10 +13,10 @@ bool MainWindow::InitWindow() {
 	// Create application window
 	WNDCLASSEX wc = { sizeof(WNDCLASSEX), CS_CLASSDC, ForwardWndProc, 0L, 0L, GetModuleHandle(NULL), NULL, NULL, NULL, NULL, _T("JITLoadDll"), NULL };
 	::RegisterClassEx(&wc);
-	HWND hwnd = ::CreateWindow(wc.lpszClassName, _T("JITLoadDll"), WS_OVERLAPPEDWINDOW, 100, 100, 600, 400, NULL, NULL, wc.hInstance, NULL);
+	m_hwnd = ::CreateWindow(wc.lpszClassName, _T("JITLoadDll"), WS_OVERLAPPEDWINDOW, 100, 100, 600, 400, NULL, NULL, wc.hInstance, NULL);
 
 	// Initialize Direct3D
-	if (!CreateDeviceD3D(hwnd))
+	if (!CreateDeviceD3D(m_hwnd))
 	{
 		CleanupDeviceD3D();
 		::UnregisterClass(wc.lpszClassName, wc.hInstance);
@@ -24,8 +24,8 @@ bool MainWindow::InitWindow() {
 	}
 
 	// Show the window
-	::ShowWindow(hwnd, SW_SHOWDEFAULT);
-	::UpdateWindow(hwnd);
+	::ShowWindow(m_hwnd, SW_SHOWDEFAULT);
+	::UpdateWindow(m_hwnd);
 
 	// Setup Dear ImGui context
 	IMGUI_CHECKVERSION();
@@ -37,7 +37,7 @@ bool MainWindow::InitWindow() {
 	ImGui::StyleColorsDark();
 
 	// Setup Platform/Renderer bindings
-	ImGui_ImplWin32_Init(hwnd);
+	ImGui_ImplWin32_Init(m_hwnd);
 	ImGui_ImplDX11_Init(m_pDevice, m_pDeviceContext);
 
 	// Our state
@@ -62,6 +62,11 @@ bool MainWindow::InitWindow() {
 			continue;
 		}
 
+		if (FunctionEditor::state.finished) {
+			callback(FunctionEditor::state.params, FunctionEditor::state.returnType);
+			FunctionEditor::state = FunctionEditor::State(); // mhm that's sexy, gotta love immediate mode
+		}
+
 		// Start the Dear ImGui frame
 		ImGui_ImplDX11_NewFrame();
 		ImGui_ImplWin32_NewFrame();
@@ -73,7 +78,7 @@ bool MainWindow::InitWindow() {
 		ImGuiWindowFlags winFlags = ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize;
 		{
 			ImGui::Begin("Choose Export", NULL, winFlags);
-			MainContents::Draw();
+			FunctionEditor::Draw();
 			ImGui::End();
 		}
 
@@ -93,7 +98,7 @@ bool MainWindow::InitWindow() {
 	ImGui::DestroyContext();
 
 	CleanupDeviceD3D();
-	::DestroyWindow(hwnd);
+	::DestroyWindow(m_hwnd);
 	::UnregisterClass(wc.lpszClassName, wc.hInstance);
 
 	return 0;
@@ -191,18 +196,22 @@ void MainWindow::CleanupRenderTarget()
 	}
 }
 
-MainContents::State::ParamState MainWindow::getParamState(const uint8_t idx) const
+FunctionEditor::State::ParamState MainWindow::getParamState(const uint8_t idx) const
 {
-	if (idx >= MainContents::state.params.size())
-		return MainContents::State::ParamState();
+	if (idx >= FunctionEditor::state.params.size())
+		return FunctionEditor::State::ParamState();
 
-	return MainContents::state.params.at(idx);
+	return FunctionEditor::state.params.at(idx);
 }
 
 uint8_t MainWindow::getParamCount() const {
-	return MainContents::state.params.size();
+	return FunctionEditor::state.params.size();
 }
 
 const char* MainWindow::getReturnType() const {
-	return MainContents::state.returnType;
+	return FunctionEditor::state.returnType;
+}
+
+void MainWindow::closeWindow() const {
+	SendMessage(m_hwnd, WM_DESTROY, 0, 0);
 }

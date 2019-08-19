@@ -277,8 +277,8 @@
     <ClInclude Include="ErrorLog.hpp" />
     <ClInclude Include="imgui_memory_editor.h" />
     <ClInclude Include="JITCall.hpp" />
-    <ClInclude Include="MainContents.h" />
-    <ClInclude Include="MainWindow.h" />
+    <ClInclude Include="FunctionEditor.hpp" />
+    <ClInclude Include="MainWindow.hpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

@@ -386,14 +386,14 @@
     <ClInclude Include="..\imgui\imstb_truetype.h">
       <Filter>Header Files\ImGui</Filter>
     </ClInclude>
-    <ClInclude Include="MainWindow.h">
-      <Filter>Header Files\Menus</Filter>
-    </ClInclude>
-    <ClInclude Include="MainContents.h">
-      <Filter>Header Files\Menus</Filter>
-    </ClInclude>
     <ClInclude Include="imgui_memory_editor.h">
       <Filter>Header Files\ImGui</Filter>
+    </ClInclude>
+    <ClInclude Include="MainWindow.hpp">
+      <Filter>Header Files\Menus</Filter>
+    </ClInclude>
+    <ClInclude Include="FunctionEditor.hpp">
+      <Filter>Header Files\Menus</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>
