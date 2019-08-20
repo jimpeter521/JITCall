@@ -155,7 +155,7 @@ namespace FunctionEditor {
 		}
 
 		// Window thread checks for this
-		if (ImGui::Button("Close Function Editor"))
+		if (ImGui::Button("Finish Editing Function"))
 		{
 			if (!state.isValidEndState()) {
 				ImGui::OpenPopup("TypeDefError");

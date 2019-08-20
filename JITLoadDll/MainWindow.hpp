@@ -23,12 +23,14 @@ namespace hack {
 class MainWindow {
 public:
 	typedef std::function<void(const std::vector<FunctionEditor::State::ParamState>& params, const char* retType)> tNewFunc;
+	typedef std::function<void(std::string)> tFileChosen;
 
 	MainWindow();
 	bool InitWindow();
 	
 	LONG_PTR WINAPI WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
 	void OnNewFunction(tNewFunc callback) { this->callback = callback; }
+	void OnFileChosen(tFileChosen callback) { this->fileCallback = callback;  }
 private:
 	FunctionEditor::State::ParamState getParamState(const uint8_t idx) const;
 	const char* getReturnType() const;
@@ -47,6 +49,8 @@ private:
 	ID3D11RenderTargetView* m_pRenderTargetView;
 
 	tNewFunc callback;
+	tFileChosen fileCallback;
+	bool m_showFilePicker;
 };
 
 extern LRESULT ImGui_ImplWin32_WndProcHandler(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);

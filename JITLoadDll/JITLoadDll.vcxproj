@@ -204,6 +204,7 @@
     <ClCompile Include="..\imgui\imgui_draw.cpp" />
     <ClCompile Include="..\imgui\imgui_widgets.cpp" />
     <ClCompile Include="CommandParser.cpp" />
+    <ClCompile Include="imgui_filedialog.cpp" />
     <ClCompile Include="JITCall.cpp" />
     <ClCompile Include="JITLoadDll.cpp" />
     <ClCompile Include="MainWindow.cpp" />
@@ -274,7 +275,9 @@
     <ClInclude Include="..\imgui\imstb_textedit.h" />
     <ClInclude Include="..\imgui\imstb_truetype.h" />
     <ClInclude Include="CommandParser.hpp" />
+    <ClInclude Include="dirent.h" />
     <ClInclude Include="ErrorLog.hpp" />
+    <ClInclude Include="imgui_filedialog.hpp" />
     <ClInclude Include="imgui_memory_editor.h" />
     <ClInclude Include="JITCall.hpp" />
     <ClInclude Include="FunctionEditor.hpp" />

@@ -1,4 +1,5 @@
 #include "MainWindow.hpp"
+#include "imgui_filedialog.hpp"
 
 MainWindow::MainWindow() {
 	m_pDevice = nullptr;
@@ -7,6 +8,7 @@ MainWindow::MainWindow() {
 	m_pRenderTargetView = nullptr;
 
 	hack::pWindow = this;
+	m_showFilePicker = true;
 }
 
 bool MainWindow::InitWindow() {
@@ -78,7 +80,25 @@ bool MainWindow::InitWindow() {
 		ImGuiWindowFlags winFlags = ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize;
 		{
 			ImGui::Begin("Choose Export", NULL, winFlags);
-			FunctionEditor::Draw();
+			if (m_showFilePicker) {
+				auto filePicker = ImGuiFileDialog::Instance();
+				if (filePicker->FileDialog("Choose File", ".dll\0\0", ".", "")) {
+					if (filePicker->IsOk) {
+						fileCallback(ImGuiFileDialog::Instance()->GetFilepathName());
+						m_showFilePicker = false;
+					} else {
+						ImGui::OpenPopup("FilePickError");
+					}
+				}
+
+				if (ImGui::BeginPopup("FilePickError"))
+				{
+					ImGui::TextColored(ImColor::HSV(356.09f, 68.05f, 66.27f), "%s", "You must select a file to load");
+					ImGui::EndPopup();
+				}
+			} else {
+				FunctionEditor::Draw();
+			}
 			ImGui::End();
 		}
 

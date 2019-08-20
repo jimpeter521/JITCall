@@ -12,18 +12,14 @@ int test(int i, float j) {
 int main()
 {
 	Command cmdParser(GetCommandLineA());
-	printf("%s\n", GetCommandLineA());
-	if (cmdParser.GetArgCount()) {
-		std::string self = cmdParser.GetText();
-		printf("Arg 0: %s\n", self.c_str());
-		for (int i = 0; i < cmdParser.GetArgCount(); i++) {
-			printf("Arg %d: %s\n", i + 1, cmdParser.GetArg(i).c_str());
-		}
-	}
-
 	std::vector<JITCall::tJitCall> jitCalls;
-
+	std::string dllPath = "";
 	MainWindow window;
+	window.OnFileChosen([&](std::string path) {
+		std::cout << "File Chosen: " << path << std::endl;
+		dllPath = path;
+	});
+
 	window.OnNewFunction([&](const std::vector<FunctionEditor::State::ParamState>& paramStates, const char* retType) {
 		JITCall jit((char*)&test);
 		std::vector<std::string> paramTypes;
