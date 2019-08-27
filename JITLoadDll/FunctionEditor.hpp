@@ -14,6 +14,7 @@ namespace FunctionEditor {
 		static const char* types[] = { "char", "unsigned char", "int16_t", "uint16_t",
 			"int32_t", "uint32_t", "int64_t", "uint64_t", "float", "double"};
 		static const char* DEFAULT_TYPE = "";
+		static const char* EMPTY_EXPORT_NAME = "";
 	}
 
 	struct State {
@@ -34,7 +35,7 @@ namespace FunctionEditor {
 		};
 
 		bool isValidEndState() {
-			if (returnType == data::DEFAULT_TYPE) {
+			if (returnType == data::DEFAULT_TYPE || exportName.empty()) {
 				return false;
 			}
 
@@ -47,12 +48,17 @@ namespace FunctionEditor {
 			// all other states are valid
 			return true;
 		}
+		
+		static const uint8_t ExportMaxLen = 20;
 
 		const char* returnType = data::DEFAULT_TYPE;
 		MemoryEditor m_memEditor;
 		const char* cur_convention = data::calling_conventions[0];
-		std::vector<ParamState> params;
+		std::vector<ParamState> params; 
+		
 
+		// imgui writes into value
+		std::array<char, ExportMaxLen> exportName;
 		bool finished = false;
 	};
 
@@ -84,6 +90,8 @@ namespace FunctionEditor {
 	}
 
 	static void Draw() {
+		ImGui::InputTextWithHint("Export_Name", "Enter the name of an export", state.exportName.data(), 20);
+		ImGui::SameLine();
 		ImGui::Text("Select Calling Convention: ");
 		ImGui::SameLine();
 

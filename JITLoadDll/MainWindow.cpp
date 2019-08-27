@@ -65,7 +65,7 @@ bool MainWindow::InitWindow() {
 		}
 
 		if (FunctionEditor::state.finished) {
-			callback(FunctionEditor::state.params, FunctionEditor::state.returnType);
+			callback(FunctionEditor::state.params, FunctionEditor::state.returnType, FunctionEditor::state.exportName.data());
 			FunctionEditor::state = FunctionEditor::State(); // mhm that's sexy, gotta love immediate mode
 		}
 

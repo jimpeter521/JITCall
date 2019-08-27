@@ -14,14 +14,20 @@ int main()
 	Command cmdParser(GetCommandLineA());
 	std::vector<JITCall::tJitCall> jitCalls;
 	std::string dllPath = "";
+	HMODULE loadedModule = NULL;
 	MainWindow window;
 	window.OnFileChosen([&](std::string path) {
 		std::cout << "File Chosen: " << path << std::endl;
 		dllPath = path;
+
+		// actally load
+		loadedModule = LoadLibraryA(dllPath.c_str());
 	});
 
-	window.OnNewFunction([&](const std::vector<FunctionEditor::State::ParamState>& paramStates, const char* retType) {
-		JITCall jit((char*)&test);
+	window.OnNewFunction([&](const std::vector<FunctionEditor::State::ParamState>& paramStates, const char* retType, const char* exportName) {
+		uint64_t exportAddr = (uint64_t)((char*)GetProcAddress(loadedModule, exportName));
+		std::cout << "Export: " << exportName << " " << std::hex<<  exportAddr  << std::dec << std::endl;
+		JITCall jit((char*)exportAddr);
 		std::vector<std::string> paramTypes;
 		JITCall::Parameters* params = (JITCall::Parameters*)(char*)new uint64_t[paramStates.size()];
 		memset(params, 0, sizeof(uint64_t) * paramStates.size());
