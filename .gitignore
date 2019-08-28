@@ -32,6 +32,11 @@ bld/
 
 # Visual Studio 2015/2017 cache/options directory
 .vs/
+*.suo
+*.user
+bin/
+x64/
+x86/
 # Uncomment if you have tasks that create the project's static files in wwwroot
 #wwwroot/
 
@@ -350,3 +355,6 @@ MigrationBackup/
 
 # Ionide (cross platform F# VS Code tools) working folder
 .ionide/
+
+Debug/
+Release/

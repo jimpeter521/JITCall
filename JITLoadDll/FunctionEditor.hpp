@@ -90,11 +90,7 @@ namespace FunctionEditor {
 	}
 
 	static void Draw() {
-		ImGui::InputTextWithHint("Export_Name", "Enter the name of an export", state.exportName.data(), 20);
-		ImGui::SameLine();
-		ImGui::Text("Select Calling Convention: ");
-		ImGui::SameLine();
-
+		ImGui::InputTextWithHint("Export name", "Enter the name of an export", state.exportName.data(), 20);
 		if (ImGui::BeginCombo("##convention", state.cur_convention)) // The second parameter is the label previewed before opening the combo.
 		{
 			for (int n = 0; n < IM_ARRAYSIZE(data::calling_conventions); n++)
@@ -107,9 +103,11 @@ namespace FunctionEditor {
 			}
 			ImGui::EndCombo();
 		}
-
+		ImGui::SameLine();
+		ImGui::Text("Calling convention");
+		
 		// set combo string type on return value type
-		if (ImGui::BeginCombo("return type", state.returnType)) 
+		if (ImGui::BeginCombo("Return type", state.returnType)) 
 		{
 			for (int n = 0; n < IM_ARRAYSIZE(data::types); n++)
 			{

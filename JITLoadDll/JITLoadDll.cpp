@@ -9,10 +9,23 @@ int test(int i, float j) {
 	return 0;
 }
 
+// Represents a single jit'd stub & it's execution environment
+struct JITEnv {
+	// holds jit runtime and builder
+	std::unique_ptr<JITCall> jit;
+
+	// holds jitted stub
+	JITCall::tJitCall call;
+
+	// holds params;
+	std::unique_ptr<JITCall::Parameters> params;
+};
+
 int main()
 {
 	Command cmdParser(GetCommandLineA());
-	std::vector<JITCall::tJitCall> jitCalls;
+	std::vector<JITEnv> jitEnvs;
+
 	std::string dllPath = "";
 	HMODULE loadedModule = NULL;
 	MainWindow window;
@@ -27,29 +40,33 @@ int main()
 	window.OnNewFunction([&](const std::vector<FunctionEditor::State::ParamState>& paramStates, const char* retType, const char* exportName) {
 		uint64_t exportAddr = (uint64_t)((char*)GetProcAddress(loadedModule, exportName));
 		std::cout << "Export: " << exportName << " " << std::hex<<  exportAddr  << std::dec << std::endl;
-		JITCall jit((char*)exportAddr);
-		std::vector<std::string> paramTypes;
-		JITCall::Parameters* params = (JITCall::Parameters*)(char*)new uint64_t[paramStates.size()];
-		memset(params, 0, sizeof(uint64_t) * paramStates.size());
+		
+		JITEnv env;
+		env.jit = std::make_unique<JITCall>((char*)exportAddr);
+		env.params.reset((JITCall::Parameters*)new uint64_t[paramStates.size()]);
+
+		memset(env.params.get(), 0, sizeof(uint64_t) * paramStates.size());
 
 		// build param list of types from GUI state
+		std::vector<std::string> paramTypes;
 		for (uint8_t i = 0; i < paramStates.size(); i++) {
 			auto pstate = paramStates.at(i);
 			paramTypes.push_back(pstate.type);
-			*(uint64_t*)params->getArgPtr(i) = pstate.getPacked();
+			*(uint64_t*)env.params->getArgPtr(i) = pstate.getPacked();
 		}
 
-		JITCall::tJitCall pCall = jit.getJitFunc(retType, paramTypes);	
-		jitCalls.push_back(pCall);
-
+		env.call = env.jit->getJitFunc(retType, paramTypes);	
+		jitEnvs.push_back(std::move(env));
 		std::cout << "Added a new JIT call" << std::endl;
 	});
 
 	window.InitWindow();
 
+	// Invoke in order
+	for(JITEnv& env : jitEnvs) {
+		env.call(env.params.get());
+	}
 	
-	//pCall(params);
-	//delete[] params;
 	getchar();
 }
 
