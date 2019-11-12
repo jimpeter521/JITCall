@@ -47,6 +47,9 @@ bool MainWindow::InitWindow() {
 	bool show_another_window = false;
 	ImVec4 clear_color = ImVec4(0.f,0.f,0.f, 1.00f);
 
+	// Initially null, fileOpenCallback sets this
+	uint64_t dllBase = NULL;
+
 	// Main loop
 	MSG msg;
 	ZeroMemory(&msg, sizeof(msg));
@@ -66,7 +69,7 @@ bool MainWindow::InitWindow() {
 
 		if (FunctionEditor::state.finished) {
 			callback(FunctionEditor::state.params, FunctionEditor::state.returnType, FunctionEditor::state.exportName.data());
-			FunctionEditor::state = FunctionEditor::State(); // mhm that's sexy, gotta love immediate mode
+			FunctionEditor::state = FunctionEditor::State(dllBase); // mhm that's sexy, gotta love immediate mode
 		}
 
 		// Start the Dear ImGui frame
@@ -84,7 +87,10 @@ bool MainWindow::InitWindow() {
 				auto filePicker = ImGuiFileDialog::Instance();
 				if (filePicker->FileDialog("Choose File", ".dll\0\0", ".", "")) {
 					if (filePicker->IsOk) {
-						fileCallback(ImGuiFileDialog::Instance()->GetFilepathName());
+						dllBase = fileCallback(ImGuiFileDialog::Instance()->GetFilepathName());
+
+						// Re-init state now that DLL loaded
+						FunctionEditor::state = FunctionEditor::State(dllBase); 
 						m_showFilePicker = false;
 					} else {
 						ImGui::OpenPopup("FilePickError");

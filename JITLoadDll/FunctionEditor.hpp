@@ -1,6 +1,7 @@
 #pragma once
 #include <imgui.h>
 #include "imgui_memory_editor.h"
+#include "PEB.hpp"
 
 #include <vector>
 #include <string>
@@ -8,6 +9,35 @@
 #include <regex>
 
 namespace FunctionEditor {
+	static std::vector<std::string> getExports(uint64_t moduleBase) {
+		assert(moduleBase != NULL);
+		if (moduleBase == NULL)
+			return std::vector<std::string>();
+
+		IMAGE_DOS_HEADER* pDos = (IMAGE_DOS_HEADER*)moduleBase;
+		IMAGE_NT_HEADERS* pNT = RVA2VA(IMAGE_NT_HEADERS*, moduleBase, pDos->e_lfanew);
+		IMAGE_DATA_DIRECTORY* pDataDir = (IMAGE_DATA_DIRECTORY*)pNT->OptionalHeader.DataDirectory;
+
+		if (pDataDir[IMAGE_DIRECTORY_ENTRY_EXPORT].VirtualAddress == NULL) {
+			return std::vector<std::string>();
+		}
+
+		IMAGE_EXPORT_DIRECTORY* pExports = RVA2VA(IMAGE_EXPORT_DIRECTORY*, moduleBase, pDataDir[IMAGE_DIRECTORY_ENTRY_EXPORT].VirtualAddress);
+
+		uint32_t* pAddressOfFunctions = RVA2VA(uint32_t*, moduleBase, pExports->AddressOfFunctions);
+		uint32_t* pAddressOfNames = RVA2VA(uint32_t*, moduleBase, pExports->AddressOfNames);
+		uint16_t* pAddressOfNameOrdinals = RVA2VA(uint16_t*, moduleBase, pExports->AddressOfNameOrdinals);
+
+		std::vector<std::string> exports;
+		exports.reserve(pExports->NumberOfNames);
+		for (uint32_t i = 0; i < pExports->NumberOfNames; i++)
+		{
+			char* exportName = RVA2VA(char*, moduleBase, pAddressOfNames[i]);
+			exports.push_back(exportName);
+		}
+		return exports;
+	}
+
 	namespace data {
 		// can use == since static
 		static const char* calling_conventions[] = { "stdcall", "cdecl", "fastcall", };
@@ -18,6 +48,22 @@ namespace FunctionEditor {
 	}
 
 	struct State {
+		State() {
+			dllExports = std::vector<std::string>();
+			memset(exportName.data(), 0, exportName.size());
+
+			const char* defName = "Select an export...";
+			memcpy(exportName.data(), defName, strlen(defName));
+		}
+
+		State(uint64_t dllBase) {
+			dllExports = getExports(dllBase);
+			memset(exportName.data(), 0, exportName.size());
+
+			const char* defName = "Select an export...";
+			memcpy(exportName.data(), defName, strlen(defName));
+		}
+
 		class ParamState {
 		public:
 			typedef uint64_t PackedType;
@@ -56,6 +102,7 @@ namespace FunctionEditor {
 		const char* cur_convention = data::calling_conventions[0];
 		std::vector<ParamState> params; 
 		
+		std::vector<std::string> dllExports;
 
 		// imgui writes into value
 		std::array<char, ExportMaxLen> exportName;
@@ -90,7 +137,20 @@ namespace FunctionEditor {
 	}
 
 	static void Draw() {
-		ImGui::InputTextWithHint("Export name", "Enter the name of an export", state.exportName.data(), 20);
+		if (ImGui::BeginCombo("##export", state.exportName.data())) {
+			for (int i = 0; i < state.dllExports.size(); i++) {
+				bool is_selected = strcmp(state.exportName.data(), state.dllExports[i].c_str()) == 0;
+				if (ImGui::Selectable(state.dllExports[i].c_str(), is_selected)) {
+					memset(state.exportName.data(), 0, state.exportName.size());
+					memcpy(state.exportName.data(), state.dllExports[i].c_str(), state.dllExports[i].length());
+				}
+
+				if (is_selected)
+					ImGui::SetItemDefaultFocus();
+			}
+			ImGui::EndCombo();
+		}
+
 		if (ImGui::BeginCombo("##convention", state.cur_convention)) // The second parameter is the label previewed before opening the combo.
 		{
 			for (int n = 0; n < IM_ARRAYSIZE(data::calling_conventions); n++)

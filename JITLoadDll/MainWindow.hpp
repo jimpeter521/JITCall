@@ -23,7 +23,7 @@ namespace hack {
 class MainWindow {
 public:
 	typedef std::function<void(const std::vector<FunctionEditor::State::ParamState>& params, const char* retType, const char* exportName)> tNewFunc;
-	typedef std::function<void(std::string)> tFileChosen;
+	typedef std::function<uint64_t(std::string)> tFileChosen;
 
 	MainWindow();
 	bool InitWindow();
