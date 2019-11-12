@@ -407,5 +407,8 @@
     <ClInclude Include="dirent.h">
       <Filter>Header Files\ImGui\FileDialog</Filter>
     </ClInclude>
+    <ClInclude Include="PEB.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>
