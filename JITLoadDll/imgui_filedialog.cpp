@@ -210,7 +210,8 @@ bool ImGuiFileDialog::FileDialog(const char* vName, const char* vFilters, std::s
 	ImGui::SetNextWindowPos(m_windowPos);
 	ImGui::SetNextWindowSize(m_windowSize);
 
-	ImGui::Begin(vName);
+	ImGuiWindowFlags winFlags = ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize;
+	ImGui::Begin(vName, NULL, winFlags);
 
 	if (vPath.size() == 0) vPath = ".";
 
