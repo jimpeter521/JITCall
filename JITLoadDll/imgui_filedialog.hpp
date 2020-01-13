@@ -4,6 +4,8 @@
 #include <vector>
 #include <string>
 
+#include "imgui.h"
+
 #define MAX_FILE_DIALOG_NAME_BUFFER 1024
 
 struct FileInfoStruct
@@ -45,10 +47,15 @@ public:
 	std::string GetCurrentFileName();
 	std::string GetCurrentFilter();
 
+	void setSize(const ImVec2 size);
+	void setPos(const ImVec2 pos);
 private:
 	void ScanDir(std::string vPath);
 	void SetCurrentDir(std::string vPath);
 	void ComposeNewPath(std::vector<std::string>::iterator vIter);
+
+	ImVec2 m_windowPos;
+	ImVec2 m_windowSize;
 };
 
 

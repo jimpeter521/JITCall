@@ -51,6 +51,7 @@ private:
 	tNewFunc callback;
 	tFileChosen fileCallback;
 	bool m_showFilePicker;
+	ImVec2 m_windowSize;
 };
 
 extern LRESULT ImGui_ImplWin32_WndProcHandler(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);

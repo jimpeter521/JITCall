@@ -9,13 +9,15 @@ MainWindow::MainWindow() {
 
 	hack::pWindow = this;
 	m_showFilePicker = true;
+	m_windowSize = { 600, 400 };
 }
 
 bool MainWindow::InitWindow() {
 	// Create application window
 	WNDCLASSEX wc = { sizeof(WNDCLASSEX), CS_CLASSDC, ForwardWndProc, 0L, 0L, GetModuleHandle(NULL), NULL, NULL, NULL, NULL, _T("JITLoadDll"), NULL };
 	::RegisterClassEx(&wc);
-	m_hwnd = ::CreateWindow(wc.lpszClassName, _T("JITLoadDll"), WS_OVERLAPPEDWINDOW, 100, 100, 600, 400, NULL, NULL, wc.hInstance, NULL);
+
+	m_hwnd = ::CreateWindow(wc.lpszClassName, _T("JITLoadDll"), WS_OVERLAPPEDWINDOW, 100, 100, m_windowSize.x, m_windowSize.y, NULL, NULL, wc.hInstance, NULL);
 
 	// Initialize Direct3D
 	if (!CreateDeviceD3D(m_hwnd))
@@ -78,13 +80,15 @@ bool MainWindow::InitWindow() {
 		ImGui::NewFrame();
 
 		ImGui::SetNextWindowPos(ImVec2(0, 0));
-		ImGui::SetNextWindowSize(io.DisplaySize);
+		ImGui::SetNextWindowSize(m_windowSize);
 		
 		ImGuiWindowFlags winFlags = ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize;
 		{
 			ImGui::Begin("Choose Export", NULL, winFlags);
 			if (m_showFilePicker) {
 				auto filePicker = ImGuiFileDialog::Instance();
+				filePicker->setPos(ImVec2(0, 0));
+				filePicker->setSize(m_windowSize);
 				if (filePicker->FileDialog("Choose File", ".dll\0\0", ".", "")) {
 					if (filePicker->IsOk) {
 						dllBase = fileCallback(ImGuiFileDialog::Instance()->GetFilepathName());
@@ -142,6 +146,8 @@ LONG_PTR WINAPI MainWindow::WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM l
 		{
 			CleanupRenderTarget();
 		    m_pSwapChain->ResizeBuffers(0, (UINT)LOWORD(lParam), (UINT)HIWORD(lParam), DXGI_FORMAT_UNKNOWN, 0);
+			m_windowSize.x = LOWORD(lParam);
+			m_windowSize.y = HIWORD(lParam);
 			CreateRenderTarget();
 		}
 		return 0;

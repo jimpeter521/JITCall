@@ -1,5 +1,4 @@
 #include "imgui_filedialog.hpp"
-#include "imgui.h"
 #include "dirent.h"
 
 #define IMGUI_DEFINE_MATH_OPERATORS
@@ -194,11 +193,22 @@ void ImGuiFileDialog::ComposeNewPath(std::vector<std::string>::iterator vIter)
 		m_CurrentPath = *vIter + "\\";
 }
 
+void ImGuiFileDialog::setPos(const ImVec2 pos) {
+	m_windowPos = pos;
+}
+
+void ImGuiFileDialog::setSize(const ImVec2 size) {
+	m_windowSize = size;
+}
+
 bool ImGuiFileDialog::FileDialog(const char* vName, const char* vFilters, std::string vPath, std::string vDefaultFileName)
 {
 	bool res = false;
 
 	IsOk = false;
+
+	ImGui::SetNextWindowPos(m_windowPos);
+	ImGui::SetNextWindowSize(m_windowSize);
 
 	ImGui::Begin(vName);
 
