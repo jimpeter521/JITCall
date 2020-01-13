@@ -68,6 +68,14 @@ ret                                         ; C3
 One:1337 Two:1338.000000
 ```
 
+# Setup
+
+```
+git clone --recursive https://github.com/stevemk14ebr/JITCall.git
+cd JITCall
+git submodule update --init --recursive
+```
+
 # Implementation (JIT works, need to stitch command line stuff in still)
 Stole x64dbgs command parser to preserve style, parse command line with that. Use arguments from command line to fill a uint64_t parameter array, utilizing type puning to just shove raw bytes in. Abuse ASMJit to JIT a little wrapper function that will take the parameter array as input and map the slots in the array to the correct ABI locations (stack/reg) for the call we are doing. Then invoke this JIT stub from C.
 
