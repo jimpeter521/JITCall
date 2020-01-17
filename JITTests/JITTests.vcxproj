@@ -62,8 +62,9 @@
     <ClCompile Include="..\asmjit\src\asmjit\x86\x86operand.cpp" />
     <ClCompile Include="..\asmjit\src\asmjit\x86\x86rapass.cpp" />
     <ClCompile Include="..\JITLoadDll\JITCall.cpp" />
-    <ClCompile Include="..\JITLoadDll\JITCallTest.cpp" />
-    <ClCompile Include="..\JITLoadDll\MainTests.cpp" />
+    <ClCompile Include="EffectTracker.cpp" />
+    <ClCompile Include="JITCallTest.cpp" />
+    <ClCompile Include="MainTests.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\asmjit\src\asmjit\asmjit.h" />
@@ -124,7 +125,9 @@
     <ClInclude Include="..\asmjit\src\asmjit\x86\x86opcode_p.h" />
     <ClInclude Include="..\asmjit\src\asmjit\x86\x86operand.h" />
     <ClInclude Include="..\asmjit\src\asmjit\x86\x86rapass_p.h" />
-    <ClInclude Include="..\JITLoadDll\catch.hpp" />
+    <ClInclude Include="catch.hpp" />
+    <ClInclude Include="EffectTracker.hpp" />
+    <ClInclude Include="UID.hpp" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>16.0</VCProjectVersion>
@@ -181,22 +184,18 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <LinkIncremental>true</LinkIncremental>
     <IncludePath>$(ProjectDir)\..\asmjit\src;$(IncludePath)</IncludePath>
-    <SourcePath>$(SourcePath)</SourcePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LinkIncremental>true</LinkIncremental>
     <IncludePath>$(ProjectDir)\..\asmjit\src;$(IncludePath)</IncludePath>
-    <SourcePath>$(SourcePath)</SourcePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LinkIncremental>false</LinkIncremental>
     <IncludePath>$(ProjectDir)\..\asmjit\src;$(IncludePath)</IncludePath>
-    <SourcePath>$(SourcePath)</SourcePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LinkIncremental>false</LinkIncremental>
     <IncludePath>$(ProjectDir)\..\asmjit\src;$(IncludePath)</IncludePath>
-    <SourcePath>$(SourcePath)</SourcePath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>

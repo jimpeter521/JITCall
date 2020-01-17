@@ -18,12 +18,6 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\JITLoadDll\JITCallTest.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\JITLoadDll\MainTests.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="..\JITLoadDll\JITCall.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -153,11 +147,17 @@
     <ClCompile Include="..\asmjit\src\asmjit\core\zonevector.cpp">
       <Filter>Header Files\asmjit</Filter>
     </ClCompile>
+    <ClCompile Include="EffectTracker.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="MainTests.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="JITCallTest.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\JITLoadDll\catch.hpp">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="..\asmjit\src\asmjit\asmjit.h">
       <Filter>Header Files\asmjit</Filter>
     </ClInclude>
@@ -331,6 +331,15 @@
     </ClInclude>
     <ClInclude Include="..\asmjit\src\asmjit\core\zonevector.h">
       <Filter>Header Files\asmjit</Filter>
+    </ClInclude>
+    <ClInclude Include="UID.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="EffectTracker.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="catch.hpp">
+      <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>
