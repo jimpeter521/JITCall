@@ -28,6 +28,9 @@
     <Filter Include="Header Files\ImGui\FileDialog">
       <UniqueIdentifier>{673ed0a7-9a01-4858-bf1b-8f65e80d7dd8}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source Files\Tests">
+      <UniqueIdentifier>{5ff0cbe0-0d90-4153-b5a3-b900acc45314}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="JITLoadDll.cpp">
@@ -410,5 +413,11 @@
     <ClInclude Include="PEB.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="catch.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="imgui.ini" />
   </ItemGroup>
 </Project>

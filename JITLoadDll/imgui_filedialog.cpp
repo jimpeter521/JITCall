@@ -5,6 +5,7 @@
 #include "imgui_internal.h"
 
 #include <algorithm>
+#include <codecvt>
 
 inline bool ReplaceString(std::string& str, const std::string& oldStr, const std::string& newStr)
 {
@@ -35,6 +36,12 @@ inline std::vector<std::string> splitStringVector(const std::string& text, char 
 	return arr;
 }
 
+std::string wideToNarrow(std::wstring ws) {
+	// NOTE: This probably explodes with unicode paths, but imgui only renders ascii so who cares
+	std::wstring_convert<std::codecvt_utf8<wchar_t>, wchar_t> converter;
+	return converter.to_bytes(ws);
+}
+
 inline void AppendToBuffer(char* vBuffer, int vBufferLen, std::string vStr)
 {
 	std::string st = vStr;
@@ -46,7 +53,7 @@ inline void AppendToBuffer(char* vBuffer, int vBufferLen, std::string vStr)
 	if (str.size() > 0) str += "\n";
 	str += vStr;
 	int len = vBufferLen - 1;
-	if (len > str.size()) len = str.size();
+	if ((size_t)len > str.size()) len = str.size();
 	strncpy_s(vBuffer, vBufferLen, str.c_str(), len);
 	vBuffer[len] = '\0';
 }
@@ -101,10 +108,11 @@ void ImGuiFileDialog::ScanDir(std::string vPath)
 			vPath = "."; // current  app path
 			currentDir = opendir(vPath.c_str());
 		}
+		
 		if (currentDir != 0)
 		{
 			std::wstring ws(currentDir->wdirp->patt);
-			m_CurrentPath = std::string(ws.begin(), ws.end());
+			m_CurrentPath = wideToNarrow(ws);
 			ReplaceString(m_CurrentPath, "\\*", "");
 			closedir(currentDir);
 			m_CurrentPath_Decomposition = splitStringVector(m_CurrentPath, '\\');
@@ -165,10 +173,11 @@ void ImGuiFileDialog::SetCurrentDir(std::string vPath)
 		vPath = ".";
 		dir = opendir(vPath.c_str());
 	}
+
 	if (dir != 0)
 	{
 		std::wstring ws(dir->wdirp->patt);
-		m_CurrentPath = std::string(ws.begin(), ws.end());
+		m_CurrentPath = wideToNarrow(ws);
 		ReplaceString(m_CurrentPath, "\\*", "");
 		closedir(dir);
 		m_CurrentPath_Decomposition = splitStringVector(m_CurrentPath, '\\');

@@ -17,7 +17,7 @@ bool MainWindow::InitWindow() {
 	WNDCLASSEX wc = { sizeof(WNDCLASSEX), CS_CLASSDC, ForwardWndProc, 0L, 0L, GetModuleHandle(NULL), NULL, NULL, NULL, NULL, _T("JITLoadDll"), NULL };
 	::RegisterClassEx(&wc);
 
-	m_hwnd = ::CreateWindow(wc.lpszClassName, _T("JITLoadDll"), WS_OVERLAPPEDWINDOW, 100, 100, m_windowSize.x, m_windowSize.y, NULL, NULL, wc.hInstance, NULL);
+	m_hwnd = ::CreateWindow(wc.lpszClassName, _T("JITLoadDll"), WS_OVERLAPPEDWINDOW, 100, 100, (int)m_windowSize.x, (int)m_windowSize.y, NULL, NULL, wc.hInstance, NULL);
 
 	// Initialize Direct3D
 	if (!CreateDeviceD3D(m_hwnd))
@@ -237,7 +237,7 @@ FunctionEditor::State::ParamState MainWindow::getParamState(const uint8_t idx) c
 }
 
 uint8_t MainWindow::getParamCount() const {
-	return FunctionEditor::state.params.size();
+	return (uint8_t)FunctionEditor::state.params.size();
 }
 
 const char* MainWindow::getReturnType() const {

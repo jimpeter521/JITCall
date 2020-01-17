@@ -274,6 +274,7 @@
     <ClInclude Include="..\imgui\imstb_rectpack.h" />
     <ClInclude Include="..\imgui\imstb_textedit.h" />
     <ClInclude Include="..\imgui\imstb_truetype.h" />
+    <ClInclude Include="catch.hpp" />
     <ClInclude Include="CommandParser.hpp" />
     <ClInclude Include="dirent.h" />
     <ClInclude Include="ErrorLog.hpp" />
@@ -283,6 +284,9 @@
     <ClInclude Include="FunctionEditor.hpp" />
     <ClInclude Include="MainWindow.hpp" />
     <ClInclude Include="PEB.hpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="imgui.ini" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

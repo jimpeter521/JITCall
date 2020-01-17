@@ -138,7 +138,7 @@ namespace FunctionEditor {
 
 	static void Draw() {
 		if (ImGui::BeginCombo("##export", state.exportName.data())) {
-			for (int i = 0; i < state.dllExports.size(); i++) {
+			for (size_t i = 0; i < state.dllExports.size(); i++) {
 				bool is_selected = strcmp(state.exportName.data(), state.dllExports[i].c_str()) == 0;
 				if (ImGui::Selectable(state.dllExports[i].c_str(), is_selected)) {
 					memset(state.exportName.data(), 0, state.exportName.size());
@@ -153,7 +153,7 @@ namespace FunctionEditor {
 
 		if (ImGui::BeginCombo("##convention", state.cur_convention)) // The second parameter is the label previewed before opening the combo.
 		{
-			for (int n = 0; n < IM_ARRAYSIZE(data::calling_conventions); n++)
+			for (size_t n = 0; n < (size_t)IM_ARRAYSIZE(data::calling_conventions); n++)
 			{
 				bool is_selected = (state.cur_convention == data::calling_conventions[n]);
 				if (ImGui::Selectable(data::calling_conventions[n], is_selected))
@@ -185,7 +185,7 @@ namespace FunctionEditor {
 			state.params.push_back(State::ParamState());
 		}
 
-		for (int i = 0; i < state.params.size(); i++) {		
+		for (size_t i = 0; i < state.params.size(); i++) {		
 			// each element in this loop must have unique name
 			std::string name = std::to_string(i);
 
