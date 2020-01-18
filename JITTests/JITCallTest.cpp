@@ -7,7 +7,7 @@
 EffectTracker effects;
 
 // do some random logic in the attempt to trigger an exception if jit is wrong
-#define uselessOps() volatile int i = 10; i++; i--; i *= i; printf("Ignore me: %i", i) 
+#define uselessOps() volatile int i = 10; i++; i--; i *= i; printf("Ignore me: %i\n", i) 
 
 // only trigger function as successful if condition is true
 #define triggerIf(cond) if (cond) { effects.PeakEffect().trigger(); }
