@@ -11,6 +11,10 @@ int test(int i, float j) {
 
 // Represents a single jit'd stub & it's execution environment
 struct JITEnv {
+	JITEnv() {
+		call = nullptr;
+	}
+
 	// holds jit runtime and builder
 	std::unique_ptr<JITCall> jit;
 
@@ -48,16 +52,14 @@ int main()
 		
 		JITEnv env;
 		env.jit = std::make_unique<JITCall>((char*)exportAddr);
-		env.params.reset((JITCall::Parameters*)new uint64_t[paramStates.size()]);
-
-		memset(env.params.get(), 0, sizeof(uint64_t) * paramStates.size());
+		env.params.reset(JITCall::Parameters::AllocParameters((uint8_t)paramStates.size()));
 
 		// build param list of types from GUI state
 		std::vector<std::string> paramTypes;
 		for (uint8_t i = 0; i < paramStates.size(); i++) {
 			auto pstate = paramStates.at(i);
 			paramTypes.push_back(pstate.type);
-			*(uint64_t*)env.params->getArgPtr(i) = pstate.getPacked();
+			env.params->setArg<uint64_t>(i, pstate.getPacked());
 		}
 
 		env.call = env.jit->getJitFunc(retType, paramTypes);	

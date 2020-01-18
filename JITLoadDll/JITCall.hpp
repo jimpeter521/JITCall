@@ -41,7 +41,9 @@ public:
 	// Do not modify this structure at all. There's alot of nuance
 	struct Parameters {
 		static Parameters* AllocParameters(const uint8_t numArgs) {
-			return (Parameters*)new uint64_t[numArgs];
+			auto params = (Parameters*)new uint64_t[numArgs];
+			memset(params, 0, sizeof(uint64_t) * numArgs);
+			return params;
 		}
 
 		template<typename T>
@@ -52,11 +54,6 @@ public:
 		template<typename T>
 		T getArg(const uint8_t idx) const {
 			return *(T*)getArgPtr(idx);
-		}
-
-		// must be char* for aliasing rules to work when reading back out
-		char* getArgPtr(const uint8_t idx) {
-			return (char*)&m_arguments[idx];
 		}
 
 		// asm depends on this specific type
@@ -70,6 +67,12 @@ public:
 		* the compiler not be ridiculous. It's still NOT safe, but it's good enough 99.99% of the time.
 		* Oh and volatile might help this too, so we add that.
 		*/
+	private:
+
+		// must be char* for aliasing rules to work when reading back out
+		char* getArgPtr(const uint8_t idx) {
+			return (char*)&m_arguments[idx];
+		}
 	};
 
 	typedef void(*tJitCall)(Parameters* params);

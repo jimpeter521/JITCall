@@ -10,6 +10,8 @@ MainWindow::MainWindow() {
 	hack::pWindow = this;
 	m_showFilePicker = true;
 	m_windowSize = { 600, 400 };
+
+	m_hwnd = 0;
 }
 
 bool MainWindow::InitWindow() {
