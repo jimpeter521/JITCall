@@ -106,6 +106,7 @@ JITCall::tJitCall JITCall::getJitFunc(const asmjit::FuncSignature& sig) {
 			cc.movq(arg.as<asmjit::x86::Xmm>(), paramMem);
 		}
 		else {
+			// ex: void example(__m128i xmmreg) is invalid: https://github.com/asmjit/asmjit/issues/83
 			ErrorLog::singleton().push("Parameters wider than 64bits not supported", ErrorLevel::SEV);
 			return 0;
 		}

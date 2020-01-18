@@ -38,9 +38,24 @@ public:
 
 class JITCall {
 public:
+	// Do not modify this structure at all. There's alot of nuance
 	struct Parameters {
+		static Parameters* AllocParameters(const uint8_t numArgs) {
+			return (Parameters*)new uint64_t[numArgs];
+		}
+
+		template<typename T>
+		void setArg(const uint8_t idx, const T val) {
+			*(T*)getArgPtr(idx) = val;
+		}
+
+		template<typename T>
+		T getArg(const uint8_t idx) const {
+			return *(T*)getArgPtr(idx);
+		}
+
 		// must be char* for aliasing rules to work when reading back out
-		char* getArgPtr(const uint8_t idx) const {
+		char* getArgPtr(const uint8_t idx) {
 			return (char*)&m_arguments[idx];
 		}
 

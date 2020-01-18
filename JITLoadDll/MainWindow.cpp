@@ -215,9 +215,11 @@ void MainWindow::CleanupDeviceD3D()
 void MainWindow::CreateRenderTarget()
 {
 	ID3D11Texture2D* pBackBuffer;
-	m_pSwapChain->GetBuffer(0, IID_PPV_ARGS(&pBackBuffer));
-	m_pDevice->CreateRenderTargetView(pBackBuffer, NULL, &m_pRenderTargetView);
-	pBackBuffer->Release();
+	HRESULT result = m_pSwapChain->GetBuffer(0, IID_PPV_ARGS(&pBackBuffer));
+	if (SUCCEEDED(result)) {
+		m_pDevice->CreateRenderTargetView(pBackBuffer, NULL, &m_pRenderTargetView);
+		pBackBuffer->Release();
+	}
 }
 
 void MainWindow::CleanupRenderTarget()
