@@ -47,12 +47,12 @@ inline void AppendToBuffer(char* vBuffer, int vBufferLen, std::string vStr)
 	std::string st = vStr;
 	if (st != "" && st != "\n")
 		ReplaceString(st, "\n", "");
-	int slen = strlen(vBuffer);
+	size_t slen = strlen(vBuffer);
 	vBuffer[slen] = '\0';
 	std::string str = std::string(vBuffer);
 	if (str.size() > 0) str += "\n";
 	str += vStr;
-	int len = vBufferLen - 1;
+	size_t len = (size_t)vBufferLen - 1;
 	if ((size_t)len > str.size()) len = str.size();
 	strncpy_s(vBuffer, vBufferLen, str.c_str(), len);
 	vBuffer[len] = '\0';
