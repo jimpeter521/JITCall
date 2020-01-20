@@ -81,10 +81,11 @@ public:
 	JITCall(char* target);
 	~JITCall();
 
-	/* Construct a callback given the raw signature at runtime.*/
-	tJitCall getJitFunc(const std::string& retType, const std::vector<std::string>& paramTypes, std::string callConv = "");
+	/* Construct a callback given the raw signature at runtime. Optionally insert a breakpoint before the call*/
+	tJitCall getJitFunc(const std::string& retType, const std::vector<std::string>& paramTypes, std::string callConv = "", bool breakpoint = false);
 private:
-	tJitCall getJitFunc(const asmjit::FuncSignature& sig);
+	// given a signature, JIT a call stub, optionally inserting a breakpoint before the call
+	tJitCall getJitFunc(const asmjit::FuncSignature& sig, bool breakpoint);
 
 	// does a given type fit in a general purpose register (i.e. is it integer type)
 	bool isGeneralReg(const uint8_t typeId) const;

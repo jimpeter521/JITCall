@@ -46,7 +46,7 @@ int main()
 		return (uint64_t)loadedModule;
 	});
 
-	window.OnNewFunction([&](const std::vector<FunctionEditor::State::ParamState>& paramStates, const char* retType, const char* exportName) {
+	window.OnNewFunction([&](const std::vector<FunctionEditor::State::ParamState>& paramStates, const char* retType, const char* exportName, const char* callConv, bool insertBP) {
 		uint64_t exportAddr = (uint64_t)((char*)GetProcAddress(loadedModule, exportName));
 		std::cout << "Export: " << exportName << " " << std::hex<<  exportAddr  << std::dec << std::endl;
 		
@@ -62,7 +62,7 @@ int main()
 			env.params->setArg<uint64_t>(i, pstate.getPacked());
 		}
 
-		env.call = env.jit->getJitFunc(retType, paramTypes);	
+		env.call = env.jit->getJitFunc(retType, paramTypes, callConv, insertBP);	
 		jitEnvs.push_back(std::move(env));
 		std::cout << "Added a new JIT call" << std::endl;
 	});

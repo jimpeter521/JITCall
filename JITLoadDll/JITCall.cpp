@@ -61,7 +61,7 @@ uint8_t JITCall::getTypeId(const std::string& type) {
 	return asmjit::Type::kIdVoid;
 }
 
-JITCall::tJitCall JITCall::getJitFunc(const asmjit::FuncSignature& sig) {
+JITCall::tJitCall JITCall::getJitFunc(const asmjit::FuncSignature& sig, bool breakpoint) {
 	SimpleErrorHandler eh;
 	asmjit::CodeHolder code;                        // Holds code and relocation information.
 	code.init(m_jitRuntime.codeInfo());             // Initialize to the same arch as JIT runtime.
@@ -116,6 +116,11 @@ JITCall::tJitCall JITCall::getJitFunc(const asmjit::FuncSignature& sig) {
 		argRegisters.push_back(arg);
 	}
 
+	// allows debuggers to trap
+	if (breakpoint) {
+		cc.int3();
+	}
+
 	// Gen the call
 	asmjit::FuncCallNode* call = cc.call(
 		asmjit::Imm(static_cast<int64_t>((intptr_t)m_Target)),  // generate call to target            
@@ -153,14 +158,14 @@ JITCall::tJitCall JITCall::getJitFunc(const asmjit::FuncSignature& sig) {
 	return wrapperFunc;
 }
 
-JITCall::tJitCall JITCall::getJitFunc(const std::string& retType, const std::vector<std::string>& paramTypes, std::string callConv/* = ""*/) {
+JITCall::tJitCall JITCall::getJitFunc(const std::string& retType, const std::vector<std::string>& paramTypes, std::string callConv/* = ""*/, bool breakpoint /* = false*/) {
 	asmjit::FuncSignature sig;
 	std::vector<uint8_t> args;
 	for (const std::string& s : paramTypes) {
 		args.push_back(getTypeId(s));
 	}
 	sig.init(getCallConv(callConv), asmjit::FuncSignature::kNoVarArgs, getTypeId(retType), args.data(), (uint32_t)args.size());
-	return getJitFunc(sig);
+	return getJitFunc(sig, breakpoint);
 }
 
 bool JITCall::isGeneralReg(const uint8_t typeId) const {

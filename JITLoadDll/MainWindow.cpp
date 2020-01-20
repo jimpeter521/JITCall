@@ -71,8 +71,9 @@ bool MainWindow::InitWindow() {
 			continue;
 		}
 
+		// When function editor is done, invoke the callback to submit a new JITd export call stub (then do it all again until window closed)
 		if (FunctionEditor::state.finished) {
-			callback(FunctionEditor::state.params, FunctionEditor::state.returnType, FunctionEditor::state.exportName.data());
+			callback(FunctionEditor::state.params, FunctionEditor::state.returnType, FunctionEditor::state.exportName.data(), FunctionEditor::state.cur_convention, FunctionEditor::state.insertBreakpoint);
 			FunctionEditor::state = FunctionEditor::State(dllBase); // mhm that's sexy, gotta love immediate mode
 		}
 

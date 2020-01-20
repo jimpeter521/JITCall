@@ -107,6 +107,7 @@ namespace FunctionEditor {
 		// imgui writes into value
 		std::array<char, ExportMaxLen> exportName;
 		bool finished = false;
+		bool insertBreakpoint = false;
 	};
 
 	static State state;
@@ -180,6 +181,8 @@ namespace FunctionEditor {
 			}
 			ImGui::EndCombo();
 		}
+
+		ImGui::Checkbox("Break on execution", &state.insertBreakpoint);
 
 		if (ImGui::Button("Add Parameter"))
 		{
