@@ -96,6 +96,11 @@ JITCall::tJitCall JITCall::getJitFunc(const asmjit::FuncSignature& sig, bool bre
 	for (uint8_t arg_idx = 0; arg_idx < sig.argCount(); arg_idx++) {
 		const uint8_t argType = sig.args()[arg_idx];
 
+		// increment arg slot if not first one
+		if (arg_idx != 0) {
+			cc.add(i, sizeof(uint64_t));
+		}
+
 		asmjit::x86::Reg arg;
 		if (isGeneralReg(argType)) {
 			arg = cc.newInt32();
@@ -111,8 +116,6 @@ JITCall::tJitCall JITCall::getJitFunc(const asmjit::FuncSignature& sig, bool bre
 			return 0;
 		}
 
-		//cc.setArg(arg_idx, arg);
-		cc.add(i, sizeof(uint64_t));
 		argRegisters.push_back(arg);
 	}
 
