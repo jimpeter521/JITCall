@@ -41,7 +41,7 @@ namespace FunctionEditor {
 	namespace data {
 		// can use == since static
 		static const char* calling_conventions[] = { "stdcall", "cdecl", "fastcall", };
-		static const char* types[] = { "char", "unsigned char", "int16_t", "uint16_t",
+		static const char* types[] = { "void", "char", "unsigned char", "int16_t", "uint16_t",
 			"int32_t", "uint32_t", "int64_t", "uint64_t", "float", "double"};
 		static const char* DEFAULT_TYPE = "";
 		static const char* EMPTY_EXPORT_NAME = "";
@@ -137,6 +137,7 @@ namespace FunctionEditor {
 	}
 
 	static void Draw() {
+		ImGui::Text("Close window to call exports in order");
 		if (ImGui::BeginCombo("##export", state.exportName.data())) {
 			for (size_t i = 0; i < state.dllExports.size(); i++) {
 				bool is_selected = strcmp(state.exportName.data(), state.dllExports[i].c_str()) == 0;
@@ -184,7 +185,22 @@ namespace FunctionEditor {
 		{
 			state.params.push_back(State::ParamState());
 		}
-
+		ImGui::SameLine();
+		if (ImGui::Button("Remove Parameter"))
+		{
+			state.params.pop_back();
+		}
+		ImGui::SameLine();
+		if (ImGui::Button("Finish Editing Function"))
+		{
+			if (!state.isValidEndState()) {
+				ImGui::OpenPopup("TypeDefError");
+			}else {
+				// Main Window thread checks for this
+				state.finished = true;
+			}
+		}
+		
 		for (size_t i = 0; i < state.params.size(); i++) {		
 			// each element in this loop must have unique name
 			std::string name = std::to_string(i);
@@ -192,9 +208,9 @@ namespace FunctionEditor {
 			// value input, convert dropdown string to imgui input field type
 			ImGuiDataType type = typeToImType(state.params.at(i).type);
 			if (type != -1) {
-				ImGui::InputScalar((name + "val").c_str(), type, state.params.at(i).value.data());
+				ImGui::InputScalar(("param " + name).c_str(), type, state.params.at(i).value.data());
 				ImGui::SameLine();
-				if (ImGui::Button(std::string((name + "Mem").c_str()).c_str())) {
+				if (ImGui::Button("Raw Mem")) {
 					state.params.at(i).showMem = true;
 				}
 
@@ -206,10 +222,14 @@ namespace FunctionEditor {
 			}
 
 			// set combo string type on param
-			if (ImGui::BeginCombo((name + "type").c_str(), state.params.at(i).type)) // The second parameter is the label previewed before opening the combo.
+			if (ImGui::BeginCombo(("Param " + name + " type").c_str(), state.params.at(i).type)) // The second parameter is the label previewed before opening the combo.
 			{
 				for (int n = 0; n < IM_ARRAYSIZE(data::types); n++)
 				{
+					// void not allowed as parameter
+					if (strcmp(data::types[n], "void") == 0)
+						continue;
+
 					bool is_selected = (state.params.at(i).type == data::types[n]);
 					if (ImGui::Selectable(data::types[n], is_selected))
 						state.params.at(i).type = data::types[n];
@@ -217,16 +237,6 @@ namespace FunctionEditor {
 						ImGui::SetItemDefaultFocus();
 				}
 				ImGui::EndCombo();
-			}
-		}
-
-		// Window thread checks for this
-		if (ImGui::Button("Finish Editing Function"))
-		{
-			if (!state.isValidEndState()) {
-				ImGui::OpenPopup("TypeDefError");
-			} else {
-				state.finished = true;
 			}
 		}
 

@@ -6,7 +6,7 @@ extern "C" __declspec(dllexport) void exportOneCdecl(int i) {
 	printf("Hello from export one: %d", i);
 }
 
-extern "C" __declspec(dllexport) void __stdcall exportOneCdecl(int i) {
+extern "C" __declspec(dllexport) void __stdcall exportOneStd(int i) {
     printf("Hello from export one stdcall: %d", i);
 }
 
@@ -14,7 +14,7 @@ extern "C" __declspec(dllexport) void exportTwoCdecl(float i) {
     printf("Hello from export two: %f", i);
 }
 
-extern "C" __declspec(dllexport) void __stdcall exportTwo(float i) {
+extern "C" __declspec(dllexport) void __stdcall exportTwoStd(float i) {
 	printf("Hello from export two: %f", i);
 }
 
