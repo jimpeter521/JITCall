@@ -8,6 +8,7 @@
 #include <stdint.h>
 #include <string>
 #include <vector>
+#include <memory>
 
 #if defined(__clang__)
 
@@ -36,6 +37,14 @@ public:
 	asmjit::Error err;
 };
 
+/*
+Every single type that's not a SIMD type can fit within a uint64_t. This structure does
+what's called type punning to write the raw bytes of a type into a slot of width sizeof(uint64_t).
+Each slot can then be written to or read from by casting to the actual type. Pointer types are special,
+as they reference another area of memory, we don't want dangling pointers so we allocate the region
+pointed too and keep it alive within this structure too. These are shared_ptrs so they die when all references
+to the backing memory dies (this is not true if you store a ptr value via getArg manually).
+*/
 class JITCall {
 public:
 	// Do not modify this structure at all. There's alot of nuance
@@ -68,7 +77,6 @@ public:
 		* Oh and volatile might help this too, so we add that.
 		*/
 	private:
-
 		// must be char* for aliasing rules to work when reading back out
 		char* getArgPtr(const uint8_t idx) {
 			return (char*)&m_arguments[idx];

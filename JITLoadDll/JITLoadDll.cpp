@@ -11,7 +11,7 @@ int test(int i, float j) {
 
 // Represents a single jit'd stub & it's execution environment
 struct JITEnv {
-	JITEnv() {
+	JITEnv() : ptrParamMemory() {
 		call = nullptr;
 	}
 
@@ -23,6 +23,8 @@ struct JITEnv {
 
 	// holds params;
 	std::unique_ptr<JITCall::Parameters> params;
+
+	std::vector<std::shared_ptr<char>> ptrParamMemory;
 };
 
 
@@ -58,6 +60,12 @@ int main()
 		std::vector<std::string> paramTypes;
 		for (uint8_t i = 0; i < paramStates.size(); i++) {
 			auto pstate = paramStates.at(i);
+
+			// transfer ownership of backing memory so we don't have dangling references
+			if (pstate.isPtrType()) {
+				env.ptrParamMemory.emplace_back(pstate.m_ptrParamMemory);
+			}
+
 			paramTypes.push_back(pstate.type);
 			env.params->setArg<uint64_t>(i, pstate.getPacked());
 		}

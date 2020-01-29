@@ -42,7 +42,9 @@ namespace FunctionEditor {
 		// can use == since static
 		static const char* calling_conventions[] = { "stdcall", "cdecl", "fastcall", };
 		static const char* types[] = { "void", "char", "unsigned char", "int16_t", "uint16_t",
-			"int32_t", "uint32_t", "int64_t", "uint64_t", "float", "double"};
+			"int32_t", "uint32_t", "int64_t", "uint64_t", "float", "double", 
+			"char*"
+		};
 		static const char* DEFAULT_TYPE = "";
 		static const char* EMPTY_EXPORT_NAME = "";
 	}
@@ -74,9 +76,17 @@ namespace FunctionEditor {
 			const char* type = data::DEFAULT_TYPE;
 			bool showMem = false;
 
+			// for params that need backing memory (all ptr types)
+			std::shared_ptr<char> m_ptrParamMemory;
+			uint32_t m_ptrParamMemorySize;
+
 			// Reinterpret data as packed type
 			PackedType getPacked() const {
 				return *(PackedType*)value.data();
+			}
+
+			bool isPtrType() {
+				return m_ptrParamMemory != nullptr;
 			}
 		};
 
@@ -95,13 +105,23 @@ namespace FunctionEditor {
 			return true;
 		}
 		
+		// given a ptr to a param get backing memory as if it was a ptr type, alloc if not already done
+		std::shared_ptr<char> getPtrSlot(uint32_t paramIdx, uint32_t size) {
+			auto& param = params.at(paramIdx);
+			if (!param.m_ptrParamMemory) {
+				param.m_ptrParamMemorySize = size;
+				param.m_ptrParamMemory.reset(new char[size]);
+				memset(param.m_ptrParamMemory.get(), 0, size);
+			}
+			return param.m_ptrParamMemory;
+		}
+
 		static const uint8_t ExportMaxLen = 20;
 
 		const char* returnType = data::DEFAULT_TYPE;
 		MemoryEditor m_memEditor;
 		const char* cur_convention = data::calling_conventions[0];
 		std::vector<ParamState> params; 
-		
 		std::vector<std::string> dllExports;
 
 		// imgui writes into value
@@ -141,10 +161,12 @@ namespace FunctionEditor {
 		ImGui::Text("Close window to call exports in order");
 		if (ImGui::BeginCombo("##export", state.exportName.data())) {
 			for (size_t i = 0; i < state.dllExports.size(); i++) {
-				bool is_selected = strcmp(state.exportName.data(), state.dllExports[i].c_str()) == 0;
-				if (ImGui::Selectable(state.dllExports[i].c_str(), is_selected)) {
+				std::string cur_export = state.dllExports[i];
+
+				bool is_selected = strcmp(state.exportName.data(), cur_export.c_str()) == 0;
+				if (ImGui::Selectable(cur_export.c_str(), is_selected)) {
 					memset(state.exportName.data(), 0, state.exportName.size());
-					memcpy(state.exportName.data(), state.dllExports[i].c_str(), state.dllExports[i].length());
+					memcpy(state.exportName.data(), cur_export.c_str(), cur_export.length());
 				}
 
 				if (is_selected)
@@ -186,7 +208,7 @@ namespace FunctionEditor {
 
 		if (ImGui::Button("Add Parameter"))
 		{
-			state.params.push_back(State::ParamState());
+			state.params.emplace_back();
 		}
 		ImGui::SameLine();
 		if (ImGui::Button("Remove Parameter"))
@@ -207,25 +229,39 @@ namespace FunctionEditor {
 		for (size_t i = 0; i < state.params.size(); i++) {		
 			// each element in this loop must have unique name
 			std::string name = std::to_string(i);
+			auto& param = state.params.at(i);
 
-			// value input, convert dropdown string to imgui input field type
-			ImGuiDataType type = typeToImType(state.params.at(i).type);
+			// value input, convert dropdown string to imgui input field type (for primitives)
+			ImGuiDataType type = typeToImType(param.type);
 			if (type != -1) {
-				ImGui::InputScalar(("param " + name).c_str(), type, state.params.at(i).value.data());
+				ImGui::InputScalar(("param " + name).c_str(), type, param.value.data());
 				ImGui::SameLine();
 				if (ImGui::Button("Raw Mem")) {
-					state.params.at(i).showMem = true;
+					param.showMem = true;
 				}
 
 				// check if should draw editor, then if it's not open (been closed), reset flag
-				if (state.params.at(i).showMem && !state.m_memEditor.DrawWindow("Edit Memory", state.params.at(i).value.data(), State::ParamState::valSize)) {
-					state.params.at(i).showMem = false;
+				if (param.showMem && !state.m_memEditor.DrawWindow("Edit Memory", param.value.data(), State::ParamState::valSize)) {
+					param.showMem = false;
 				}
 				ImGui::SameLine();
-			}
+			} else { 
+				// this is non-primitive input types, like char* and other ptrs
+				if (strcmp(param.type, "char*") == 0) {
+					// get backing memory
+					uint16_t bufSize = 256;
+					std::shared_ptr<char> ptrMem = state.getPtrSlot(i, bufSize);
 
+					// set slot to address of backing memory
+					uint64_t ptrVal = 0;
+					ptrVal = (uint64_t)ptrMem.get();
+					memcpy(param.value.data(), (char*)&ptrVal, sizeof(ptrVal));
+					ImGui::InputTextMultiline(("param " + name).c_str(), ptrMem.get(), bufSize);
+				}
+			}
+			  
 			// set combo string type on param
-			if (ImGui::BeginCombo(("Param " + name + " type").c_str(), state.params.at(i).type)) // The second parameter is the label previewed before opening the combo.
+			if (ImGui::BeginCombo(("Param " + name + " type").c_str(), param.type))
 			{
 				for (int n = 0; n < IM_ARRAYSIZE(data::types); n++)
 				{
@@ -233,9 +269,9 @@ namespace FunctionEditor {
 					if (strcmp(data::types[n], "void") == 0)
 						continue;
 
-					bool is_selected = (state.params.at(i).type == data::types[n]);
+					bool is_selected = (param.type == data::types[n]);
 					if (ImGui::Selectable(data::types[n], is_selected))
-						state.params.at(i).type = data::types[n];
+						param.type = data::types[n];
 					if (is_selected)
 						ImGui::SetItemDefaultFocus();
 				}

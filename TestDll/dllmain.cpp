@@ -18,6 +18,10 @@ extern "C" __declspec(dllexport) void __stdcall exportTwoStd(float i) {
 	printf("Hello from export two: %f", i);
 }
 
+extern "C" __declspec(dllexport) void __stdcall exportString(char* s) {
+    printf("Hello i print strings: %s", s);
+}
+
 BOOL APIENTRY DllMain( HMODULE hModule,
                        DWORD  ul_reason_for_call,
                        LPVOID lpReserved
