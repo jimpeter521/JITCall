@@ -76,7 +76,6 @@ JITCall::tJitCall JITCall::getJitFunc(const asmjit::FuncSignature& sig, bool bre
 	code.setLogger(&log);
 
 	asmjit::x86::Compiler cc(&code);            
-	cc.int3();
 	asmjit::FuncNode* func = cc.addFunc(           // Create the wrapper function around call we JIT
 		asmjit::FuncSignatureT<void, JITCall::Parameters*>());         
 
