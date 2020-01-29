@@ -116,7 +116,7 @@ namespace FunctionEditor {
 			return param.m_ptrParamMemory;
 		}
 
-		static const uint8_t ExportMaxLen = 20;
+		static const uint8_t ExportMaxLen = 40;
 
 		const char* returnType = data::DEFAULT_TYPE;
 		MemoryEditor m_memEditor;
@@ -165,6 +165,10 @@ namespace FunctionEditor {
 
 				bool is_selected = strcmp(state.exportName.data(), cur_export.c_str()) == 0;
 				if (ImGui::Selectable(cur_export.c_str(), is_selected)) {
+					assert(cur_export.length() < state.ExportMaxLen);
+					if (cur_export.length() >= state.ExportMaxLen)
+						continue;
+
 					memset(state.exportName.data(), 0, state.exportName.size());
 					memcpy(state.exportName.data(), cur_export.c_str(), cur_export.length());
 				}
