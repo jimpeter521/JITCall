@@ -1,7 +1,7 @@
 # JITCall
 An olly inspired dll loader for x64dbg using JIT compiling instead of asm. Now you can call exports in x64dbg, without rundll32
 
-![TypeDef Builder](https://i.imgur.com/xzKKpho.png)
+![TypeDef Builder](https://i.imgur.com/Q5elpIC.png)
 
 Test function, and JIT'd call stub output:
 ```
