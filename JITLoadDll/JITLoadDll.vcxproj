@@ -267,10 +267,13 @@
     <ClInclude Include="..\asmjit\src\asmjit\x86\x86opcode_p.h" />
     <ClInclude Include="..\asmjit\src\asmjit\x86\x86operand.h" />
     <ClInclude Include="..\asmjit\src\asmjit\x86\x86rapass_p.h" />
-    <ClInclude Include="clipp.h" />
+    <ClInclude Include="CmdParser\clipp.h" />
     <ClInclude Include="ErrorLog.hpp" />
     <ClInclude Include="JITCall.hpp" />
     <ClInclude Include="PEB.hpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <Text Include="CmdParser\parser.hpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
