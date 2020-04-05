@@ -121,7 +121,13 @@ std::map<std::string, DataTypeInfo> typeFormats {
 bool formatType(std::string type, std::string data, char* outData) {
 	char buf[64];
 	DataTypeInfo typeInfo = typeFormats.at(type);
-	return sscanf_s(data.c_str(), typeInfo.formatStr.c_str(), outData) == 1;
+	bool success = sscanf_s(data.c_str(), typeInfo.formatStr.c_str(), &buf[0]) == 1;
+	if (!success)
+		return false;
+
+	memset(outData, 0, 64);
+	memcpy(outData, buf, typeInfo.size);
+	return true;
 }
 
 void printUsage(clipp::group& cli, char* argv[]) {
