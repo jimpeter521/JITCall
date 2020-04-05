@@ -120,6 +120,9 @@ std::map<std::string, DataTypeInfo> typeFormats {
 
 bool formatType(std::string type, std::string data, char* outData) {
 	char buf[64];
+	if (typeFormats.count(type) == 0)
+		return false;
+
 	DataTypeInfo typeInfo = typeFormats.at(type);
 	bool success = sscanf_s(data.c_str(), typeInfo.formatStr.c_str(), &buf[0]) == 1;
 	if (!success)
