@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
     <ProjectConfiguration Include="Debug|Win32">
@@ -96,6 +96,7 @@
       <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;ASMJIT_STATIC;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
+      <LanguageStandard>stdcpp17</LanguageStandard>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -112,6 +113,7 @@
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;ASMJIT_STATIC;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
+      <LanguageStandard>stdcpp17</LanguageStandard>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -130,6 +132,7 @@
       <PreprocessorDefinitions>WIN32;NDEBUG;_CONSOLE;ASMJIT_STATIC;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
+      <LanguageStandard>stdcpp17</LanguageStandard>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -150,6 +153,7 @@
       <PreprocessorDefinitions>NDEBUG;_CONSOLE;ASMJIT_STATIC;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
+      <LanguageStandard>stdcpp17</LanguageStandard>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -201,17 +205,8 @@
     <ClCompile Include="..\asmjit\src\asmjit\x86\x86logging.cpp" />
     <ClCompile Include="..\asmjit\src\asmjit\x86\x86operand.cpp" />
     <ClCompile Include="..\asmjit\src\asmjit\x86\x86rapass.cpp" />
-    <ClCompile Include="..\imgui\examples\imgui_impl_dx11.cpp" />
-    <ClCompile Include="..\imgui\examples\imgui_impl_win32.cpp" />
-    <ClCompile Include="..\imgui\imgui.cpp" />
-    <ClCompile Include="..\imgui\imgui_demo.cpp" />
-    <ClCompile Include="..\imgui\imgui_draw.cpp" />
-    <ClCompile Include="..\imgui\imgui_widgets.cpp" />
-    <ClCompile Include="CommandParser.cpp" />
-    <ClCompile Include="imgui_filedialog.cpp" />
     <ClCompile Include="JITCall.cpp" />
     <ClCompile Include="JITLoadDll.cpp" />
-    <ClCompile Include="MainWindow.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\asmjit\src\asmjit\asmjit.h" />
@@ -272,24 +267,9 @@
     <ClInclude Include="..\asmjit\src\asmjit\x86\x86opcode_p.h" />
     <ClInclude Include="..\asmjit\src\asmjit\x86\x86operand.h" />
     <ClInclude Include="..\asmjit\src\asmjit\x86\x86rapass_p.h" />
-    <ClInclude Include="..\imgui\imconfig.h" />
-    <ClInclude Include="..\imgui\imgui.h" />
-    <ClInclude Include="..\imgui\imgui_internal.h" />
-    <ClInclude Include="..\imgui\imstb_rectpack.h" />
-    <ClInclude Include="..\imgui\imstb_textedit.h" />
-    <ClInclude Include="..\imgui\imstb_truetype.h" />
-    <ClInclude Include="CommandParser.hpp" />
-    <ClInclude Include="dirent.h" />
     <ClInclude Include="ErrorLog.hpp" />
-    <ClInclude Include="imgui_filedialog.hpp" />
-    <ClInclude Include="imgui_memory_editor.h" />
     <ClInclude Include="JITCall.hpp" />
-    <ClInclude Include="FunctionEditor.hpp" />
-    <ClInclude Include="MainWindow.hpp" />
     <ClInclude Include="PEB.hpp" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="imgui.ini" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

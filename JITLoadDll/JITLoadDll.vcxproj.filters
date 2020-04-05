@@ -16,18 +16,6 @@
     <Filter Include="Header Files\asmjit">
       <UniqueIdentifier>{9b19542f-3807-46fa-9108-689343703684}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Header Files\x64Dbg">
-      <UniqueIdentifier>{dad22a23-1db5-4d2e-bf07-43e731e8e9b1}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Header Files\ImGui">
-      <UniqueIdentifier>{12bccf9f-ebe1-4d89-bbbd-2ee1a1d1b582}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Header Files\Menus">
-      <UniqueIdentifier>{f548a70f-543e-4117-a846-7f2aa56535f2}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Header Files\ImGui\FileDialog">
-      <UniqueIdentifier>{673ed0a7-9a01-4858-bf1b-8f65e80d7dd8}</UniqueIdentifier>
-    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="JITLoadDll.cpp">
@@ -161,33 +149,6 @@
     </ClCompile>
     <ClCompile Include="..\asmjit\src\asmjit\x86\x86rapass.cpp">
       <Filter>Header Files\asmjit</Filter>
-    </ClCompile>
-    <ClCompile Include="CommandParser.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\imgui\imgui.cpp">
-      <Filter>Header Files\ImGui</Filter>
-    </ClCompile>
-    <ClCompile Include="..\imgui\imgui_demo.cpp">
-      <Filter>Header Files\ImGui</Filter>
-    </ClCompile>
-    <ClCompile Include="..\imgui\imgui_draw.cpp">
-      <Filter>Header Files\ImGui</Filter>
-    </ClCompile>
-    <ClCompile Include="..\imgui\imgui_widgets.cpp">
-      <Filter>Header Files\ImGui</Filter>
-    </ClCompile>
-    <ClCompile Include="..\imgui\examples\imgui_impl_win32.cpp">
-      <Filter>Header Files\ImGui</Filter>
-    </ClCompile>
-    <ClCompile Include="..\imgui\examples\imgui_impl_dx11.cpp">
-      <Filter>Header Files\ImGui</Filter>
-    </ClCompile>
-    <ClCompile Include="MainWindow.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="imgui_filedialog.cpp">
-      <Filter>Header Files\ImGui\FileDialog</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -368,50 +329,11 @@
     <ClInclude Include="..\asmjit\src\asmjit\x86.h">
       <Filter>Header Files\asmjit</Filter>
     </ClInclude>
-    <ClInclude Include="CommandParser.hpp">
-      <Filter>Header Files\x64Dbg</Filter>
-    </ClInclude>
     <ClInclude Include="JITCall.hpp">
       <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\imgui\imconfig.h">
-      <Filter>Header Files\ImGui</Filter>
-    </ClInclude>
-    <ClInclude Include="..\imgui\imgui.h">
-      <Filter>Header Files\ImGui</Filter>
-    </ClInclude>
-    <ClInclude Include="..\imgui\imgui_internal.h">
-      <Filter>Header Files\ImGui</Filter>
-    </ClInclude>
-    <ClInclude Include="..\imgui\imstb_rectpack.h">
-      <Filter>Header Files\ImGui</Filter>
-    </ClInclude>
-    <ClInclude Include="..\imgui\imstb_textedit.h">
-      <Filter>Header Files\ImGui</Filter>
-    </ClInclude>
-    <ClInclude Include="..\imgui\imstb_truetype.h">
-      <Filter>Header Files\ImGui</Filter>
-    </ClInclude>
-    <ClInclude Include="imgui_memory_editor.h">
-      <Filter>Header Files\ImGui</Filter>
-    </ClInclude>
-    <ClInclude Include="MainWindow.hpp">
-      <Filter>Header Files\Menus</Filter>
-    </ClInclude>
-    <ClInclude Include="FunctionEditor.hpp">
-      <Filter>Header Files\Menus</Filter>
-    </ClInclude>
-    <ClInclude Include="imgui_filedialog.hpp">
-      <Filter>Header Files\ImGui\FileDialog</Filter>
-    </ClInclude>
-    <ClInclude Include="dirent.h">
-      <Filter>Header Files\ImGui\FileDialog</Filter>
     </ClInclude>
     <ClInclude Include="PEB.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="imgui.ini" />
   </ItemGroup>
 </Project>
