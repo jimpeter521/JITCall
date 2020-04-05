@@ -335,5 +335,8 @@
     <ClInclude Include="PEB.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="clipp.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

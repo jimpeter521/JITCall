@@ -1,4 +1,5 @@
 #include "JITCall.hpp"
+#include "clipp.h"
 
 #include <regex>
 #include <sstream>
@@ -85,34 +86,48 @@ std::optional<FNTypeDef> regex_typedef(std::string input) {
 *  WARNING: AsmJit MUST have ASMJIT_STATIC set and use /MT or /MTd for static linking
 *  due to the fact that the source code is embedded. This is an artifact of our project structure
 */
-int main()
+int main(int argc, char* argv[])
 {
-	
-	int cmdLineCount = 0;
-	wchar_t** cmdLine = CommandLineToArgvW(GetCommandLineW(), &cmdLineCount);
-	if (cmdLineCount <= 0) {
-		std::cout << "Invalid number of command line arguments given" << std::endl;
-		return 1;
+	std::vector<std::string> cmdFnTypeDef;
+	std::vector<std::vector<std::string>> cmdFnArgs;
+
+	// default initialize these elems
+	const uint8_t fnMaxCount = 5;
+	cmdFnArgs.resize(fnMaxCount); 
+	cmdFnTypeDef.resize(fnMaxCount);
+
+	auto cli = clipp::group{};
+	for (uint8_t i = 0; i < fnMaxCount; i++) {
+		cli.push_back(std::move(
+			clipp::option("-f" + std::to_string(i + 1), "--func" + std::to_string(i + 1)) & clipp::value("typedef", cmdFnTypeDef[i]) & clipp::values("args", cmdFnArgs[i])
+		));
 	}
 
-	// 0:<process_name> 1:"fndef" arg0...argn "fndef2" arg0...argn  ...and so on
-	for (uint32_t i = 1; i < (uint32_t)cmdLineCount; i++)
-	{
-		std::string narrowArg = u16Tou8(std::wstring(cmdLine[i]));
-		if (auto fnDef = regex_typedef(narrowArg)) {
-			// TODO: parse the arg values...
+	if (parse(argc, argv, cli)) {
+		for (uint8_t i = 0; i < cmdFnTypeDef.size(); i++) {
+			std::string typeDef = cmdFnTypeDef[i];
+			std::vector<std::string> args = cmdFnArgs[i];
+			if (!typeDef.size())
+				break;
 
-			// next X cmdline args should be this count
-			auto fnArgCount = fnDef->argTypes.size();
-			if (i + fnArgCount >= cmdLineCount) {
-				std::cout << "mismatch in expected function parameter value count, too few provided" << std::endl;
+			if (auto fnDef = regex_typedef(typeDef)) {
+				if (fnDef->argTypes.size() != args.size()) {
+					std::cout << "invalid parameter count supplied to function: " + std::to_string(i) << " exiting" << std::endl;
+					return 1;
+				}
+
+				std::cout << typeDef << " ";
+				for (auto arg : args) {
+					std::cout << arg << " ";
+				}
+				std::cout << std::endl;
+			} else {
+				std::cout << "invalid function typedef provided, exiting" << std::endl;
 				return 1;
 			}
-			i += fnArgCount;
-		} else {
-			std::cout << "function typedef expected, but was invalid, exiting..." << std::endl;
-			return 1;
 		}
+	} else {
+		std::cout << clipp::make_man_page(cli, argv[0]) << std::endl;
 	}
 
 	std::vector<JITEnv> jitEnvs;
@@ -133,9 +148,9 @@ int main()
 
     // build param list of types
 	const uint8_t argCount = 4;
-	env.params.reset(JITCall::Parameters::AllocParameters(cmdLineCount));
+	env.params.reset(JITCall::Parameters::AllocParameters(0));
     std::vector<std::string> paramTypes;
-    for (uint8_t i = 0; i < cmdLineCount; i++) {
+    for (uint8_t i = 0; i < 0; i++) {
 		std::string paramType = "int64_t";
 		uint64_t paramVal = 0;
 
