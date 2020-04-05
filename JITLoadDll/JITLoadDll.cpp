@@ -1,6 +1,8 @@
 #include "JITCall.hpp"
 #include "clipp.h"
 
+#include <map>
+#include <vector>
 #include <regex>
 #include <sstream>
 #include <optional>
@@ -86,6 +88,54 @@ std::optional<FNTypeDef> regex_typedef(std::string input) {
 *  WARNING: AsmJit MUST have ASMJIT_STATIC set and use /MT or /MTd for static linking
 *  due to the fact that the source code is embedded. This is an artifact of our project structure
 */
+std::vector<std::string> supportedCallConvs { "stdcall", "cdecl", "fastcall"};
+std::vector<std::string> supportedTypes { "void", "int8_t", "uint8_t", "int16_t", "uint16_t",
+	"int32_t", "uint32_t", "int64_t", "uint64_t", "float", "double",
+	"char*"
+};
+
+struct DataTypeInfo {
+	uint8_t size;
+	std::string formatStr;
+};
+
+std::map<std::string, DataTypeInfo> typeFormats {
+	{"void", {0, ""}},
+	{"int8_t", {1, "%d"}},
+	{"uint8_t", {1, "%u"}},
+	{"int16_t", {sizeof(int16_t), "%d"}},
+	{"uint16_t", {sizeof(uint16_t), "%u"}},
+	{"int32_t", {sizeof(int32_t), "%d"}},
+	{"uint32_t", {sizeof(uint32_t), "%u"}},
+#ifdef _MSC_VER
+	{"int64_t", {sizeof(int64_t), "%I64d"}},
+	{"uint64_t", {sizeof(uint64_t), "%I64u"}},
+#else
+	{"int64_t", {sizeof(int64_t), "%lld"}},
+	{"uint64_t", {sizeof(uint64_t), "%llu"}},
+#endif
+	{"float", {sizeof(float), "%f"}},
+	{"double", {sizeof(double), "%lf"}}
+};
+
+bool formatType(std::string type, std::string data, char* outData) {
+	char buf[64];
+	DataTypeInfo typeInfo = typeFormats.at(type);
+	return sscanf_s(data.c_str(), typeInfo.formatStr.c_str(), outData) == 1;
+}
+
+void printUsage(clipp::group& cli, char* argv[]) {
+	std::cout << "Supported calling conventions: " << std::endl;
+	for (auto& conv : supportedCallConvs)
+		std::cout << conv << std::endl;
+
+	std::cout << "Supported types: " << std::endl;
+	for (auto& t : supportedTypes)
+		std::cout << t << std::endl;
+
+	std::cout << clipp::make_man_page(cli, argv[0]) << std::endl;
+}
+
 int main(int argc, char* argv[])
 {
 	std::vector<std::string> cmdFnTypeDef;
@@ -127,7 +177,8 @@ int main(int argc, char* argv[])
 			}
 		}
 	} else {
-		std::cout << clipp::make_man_page(cli, argv[0]) << std::endl;
+		printUsage(cli, argv);
+		return 1;
 	}
 
 	std::vector<JITEnv> jitEnvs;
