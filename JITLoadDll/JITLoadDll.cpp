@@ -1,9 +1,22 @@
 #include "JITCall.hpp"
 
 #include <regex>
-#include <stdio.h>
 #include <sstream>
 #include <optional>
+#include <string>
+
+#include <stdio.h>
+#include <shellapi.h>
+
+std::string u16Tou8(const std::wstring s)
+{
+	int len;
+	int slength = (int)s.length() + 1;
+	len = WideCharToMultiByte(CP_ACP, 0, s.c_str(), slength, 0, 0, 0, 0);
+	std::string r(len, '\0');
+	WideCharToMultiByte(CP_ACP, 0, s.c_str(), slength, &r[0], len, 0, 0);
+	return r;
+}
 
 // Represents a single jit'd stub & it's execution environment
 struct JITEnv {
@@ -74,9 +87,34 @@ std::optional<FNTypeDef> regex_typedef(std::string input) {
 */
 int main()
 {
-	bool is_fn = regex_typedef("void (int a, int*,int64_t ,int *b, char)").has_value();
+	
+	int cmdLineCount = 0;
+	wchar_t** cmdLine = CommandLineToArgvW(GetCommandLineW(), &cmdLineCount);
+	if (cmdLineCount <= 0) {
+		std::cout << "Invalid number of command line arguments given" << std::endl;
+		return 1;
+	}
 
-	char* cmdLine = GetCommandLineA();
+	// 0:<process_name> 1:"fndef" arg0...argn "fndef2" arg0...argn  ...and so on
+	for (uint32_t i = 1; i < (uint32_t)cmdLineCount; i++)
+	{
+		std::string narrowArg = u16Tou8(std::wstring(cmdLine[i]));
+		if (auto fnDef = regex_typedef(narrowArg)) {
+			// TODO: parse the arg values...
+
+			// next X cmdline args should be this count
+			auto fnArgCount = fnDef->argTypes.size();
+			if (i + fnArgCount >= cmdLineCount) {
+				std::cout << "mismatch in expected function parameter value count, too few provided" << std::endl;
+				return 1;
+			}
+			i += fnArgCount;
+		} else {
+			std::cout << "function typedef expected, but was invalid, exiting..." << std::endl;
+			return 1;
+		}
+	}
+
 	std::vector<JITEnv> jitEnvs;
 
 	std::string dllPath = "blah_blah_blah";
@@ -95,9 +133,9 @@ int main()
 
     // build param list of types
 	const uint8_t argCount = 4;
-	env.params.reset(JITCall::Parameters::AllocParameters(argCount));
+	env.params.reset(JITCall::Parameters::AllocParameters(cmdLineCount));
     std::vector<std::string> paramTypes;
-    for (uint8_t i = 0; i < argCount; i++) {
+    for (uint8_t i = 0; i < cmdLineCount; i++) {
 		std::string paramType = "int64_t";
 		uint64_t paramVal = 0;
 
@@ -116,5 +154,6 @@ int main()
 	}
 	
 	getchar();
+	return 0;
 }
 
