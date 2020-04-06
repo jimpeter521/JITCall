@@ -23,7 +23,8 @@ struct JITEnv {
 int main(int argc, char* argv[])
 {
 	// Parse cmd line into function objects
-	if (!parseFunctions(argc, argv))
+	auto funcs = parseFunctions(argc, argv);
+	if(funcs.size() == 0)
 		return 1;
 
 	std::vector<JITEnv> jitEnvs;

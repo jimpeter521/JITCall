@@ -1,6 +1,7 @@
 #pragma once
 
 #include "clipp.h"
+#include "JITCall.hpp"
 
 #include <map>
 #include <vector>
@@ -9,6 +10,9 @@
 #include <optional>
 #include <string>
 #include <iostream>
+#include <algorithm> 
+#include <cctype>
+#include <locale>
 
 #include <stdio.h>
 #include <stringapiset.h>
@@ -25,6 +29,54 @@
 *   
 *   TODO: In the future it will be responsible for reading files into byte buffers and opening handles and such.
 ***/
+
+// trim from start (in place)
+static inline void ltrim(std::string& s) {
+	s.erase(s.begin(), std::find_if(s.begin(), s.end(), [](int ch) {
+		return !std::isspace(ch);
+		}));
+}
+
+// trim from end (in place)
+static inline void rtrim(std::string& s) {
+	s.erase(std::find_if(s.rbegin(), s.rend(), [](int ch) {
+		return !std::isspace(ch);
+		}).base(), s.end());
+}
+
+// trim from both ends (in place)
+static inline void trim(std::string& s) {
+	ltrim(s);
+	rtrim(s);
+}
+
+static inline std::string ltrim_copy(std::string s) {
+	ltrim(s);
+	return s;
+}
+
+// trim from end (copying)
+static inline std::string rtrim_copy(std::string s) {
+	rtrim(s);
+	return s;
+}
+
+// trim from both ends (copying)
+static inline std::string trim_copy(std::string s) {
+	trim(s);
+	return s;
+}
+
+std::vector<std::string> split(const std::string s, char delim) {
+	std::stringstream ss(s);
+	std::string item;
+	std::vector<std::string> elems;
+	while (std::getline(ss, item, delim)) {
+		elems.push_back(std::move(item));
+	}
+	return elems;
+}
+
 std::string u16Tou8(const std::wstring s)
 {
 	int len;
@@ -44,16 +96,6 @@ struct FNTypeDef {
 	std::vector<std::string> argTypes;
 };
 
-std::vector<std::string> split(const std::string s, char delim) {
-	std::stringstream ss(s);
-	std::string item;
-	std::vector<std::string> elems;
-	while (std::getline(ss, item, delim)) {
-		elems.push_back(std::move(item));
-	}
-	return elems;
-}
-
 std::optional<FNTypeDef> regex_typedef(std::string input) {
 	//"([a-zA-Z_][a-zA-Z0-9_*]*)\s*(?:[a-zA-Z_][a-zA-Z0-9_]*)?\s*\((.*)\)" ex: void (int a, int*,int64_t ,int *b, char)
 	std::regex fnTypeDefRgx("([a-zA-Z_][a-zA-Z0-9_*]*)\\s*(?:[a-zA-Z_][a-zA-Z0-9_]*)?\\s*\\((.*)\\)");
@@ -69,7 +111,13 @@ std::optional<FNTypeDef> regex_typedef(std::string input) {
 			std::regex fnArgRgx("([a-zA-Z_][a-zA-Z0-9_*]*)");
 
 			if (std::regex_search(argStr, fnArgRgx)) {
-				functionDefinition.argTypes.push_back(argStr);
+				// trim off variable names by space
+				std::string argTrimmed = trim_copy(argStr);
+				auto space_idx = argTrimmed.find_first_of(' ');
+				if(space_idx == std::string::npos)
+					functionDefinition.argTypes.push_back(argTrimmed);
+				else 
+					functionDefinition.argTypes.push_back(argTrimmed.substr(0, space_idx));
 			}
 			else {
 				std::cout << "Invalid function argument definition: " << argStr << std::endl;
@@ -145,10 +193,25 @@ void printUsage(clipp::group& cli, char* argv[]) {
 	std::cout << clipp::make_man_page(cli, argv[0]) << std::endl;
 }
 
-bool parseFunctions(int argc, char* argv[]) {
+// Represents a single jit'd stub & it's arguments
+struct JITFunction {
+	JITFunction() {
+		call = nullptr;
+	}
+
+	// holds jitted stub
+	JITCall::tJitCall call;
+
+	// holds params;
+	std::unique_ptr<JITCall::Parameters> params;
+};
+
+std::vector<JITFunction> parseFunctions(int argc, char* argv[]) {
+	std::vector<JITFunction> functions;
+
 	std::vector<std::string> cmdFnTypeDef;
 	std::vector<std::vector<std::string>> cmdFnArgs;
-
+	
 	// default initialize these elems
 	const uint8_t fnMaxCount = 5;
 	cmdFnArgs.resize(fnMaxCount);
@@ -171,24 +234,29 @@ bool parseFunctions(int argc, char* argv[]) {
 			if (auto fnDef = regex_typedef(typeDef)) {
 				if (fnDef->argTypes.size() != args.size()) {
 					std::cout << "invalid parameter count supplied to function: " + std::to_string(i) << " exiting" << std::endl;
-					return 1;
+					return std::vector<JITFunction>();
 				}
 
 				std::cout << typeDef << " ";
-				for (auto arg : args) {
-					std::cout << arg << " ";
+				for (uint8_t j = 0; j < fnDef->argTypes.size(); j++) {
+					std::string argType = fnDef->argTypes[j];
+					std::cout << argType << " " << args[j];
+
+					char argBuf[64];
+					if (!formatType(argType, args[j], argBuf)) {
+						std::cout << "failed to parse argument with given type" << std::endl;
+						return std::vector<JITFunction>();
+					}
 				}
 				std::cout << std::endl;
 			}
 			else {
 				std::cout << "invalid function typedef provided, exiting" << std::endl;
-				return false;
 			}
 		}
 	} else {
 		printUsage(cli, argv);
-		return false;
 	}
 
-	return true;
+	return functions;
 }
