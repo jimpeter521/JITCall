@@ -107,17 +107,25 @@ std::optional<FNTypeDef> regex_typedef(std::string input) {
 
 		auto params = matches[2].str();
 
+		// split the arguments, they are all captured as one big group
 		for (std::string argStr : split(params, ',')) {
 			std::regex fnArgRgx("([a-zA-Z_][a-zA-Z0-9_*]*)");
 
 			if (std::regex_search(argStr, fnArgRgx)) {
-				// trim off variable names by space
+				// trim off variable names by space, take care if * is attached to name
 				std::string argTrimmed = trim_copy(argStr);
 				auto space_idx = argTrimmed.find_first_of(' ');
-				if(space_idx == std::string::npos)
+				if (space_idx == std::string::npos) {
 					functionDefinition.argTypes.push_back(argTrimmed);
-				else 
-					functionDefinition.argTypes.push_back(argTrimmed.substr(0, space_idx));
+				}
+				else {
+					// whoops we lost the * by trimming by space, add it back.
+					std::string argType = argTrimmed.substr(0, space_idx);
+					if (argTrimmed.find("*") != std::string::npos && argType.find("*") == std::string::npos) {
+						argType += "*";
+					}
+					functionDefinition.argTypes.push_back(argType);
+				}
 			}
 			else {
 				std::cout << "Invalid function argument definition: " << argStr << std::endl;
@@ -150,10 +158,12 @@ struct DataTypeInfo {
 std::map<std::string, DataTypeInfo> typeFormats{
 	{"void", {0, ""}},
 	{"int8_t", {1, "%d"}},
+	{"char", {1, "%d"}},
 	{"uint8_t", {1, "%u"}},
 	{"int16_t", {sizeof(int16_t), "%d"}},
 	{"uint16_t", {sizeof(uint16_t), "%u"}},
-	{"int32_t", {sizeof(int32_t), "%d"}},
+	{"int32_t",  {sizeof(int32_t), "%d"}},
+	{"int",  {sizeof(int32_t), "%d"}},
 	{"uint32_t", {sizeof(uint32_t), "%u"}},
 #ifdef _MSC_VER
 	{"int64_t", {sizeof(int64_t), "%I64d"}},
@@ -168,6 +178,12 @@ std::map<std::string, DataTypeInfo> typeFormats{
 
 bool formatType(std::string type, std::string data, char* outData) {
 	char buf[64];
+
+	// if any type is ptr, make it the arch's int ptr type
+	if (type.find("*") != std::string::npos) {
+		type = sizeof(char*) == 4 ? "uint32_t" : "uint64_t";
+	}
+
 	if (typeFormats.count(type) == 0)
 		return false;
 
