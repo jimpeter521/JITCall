@@ -93,19 +93,41 @@ struct FNTypeDef {
 	}
 
 	std::string retType;
+	std::string callConv;
 	std::vector<std::string> argTypes;
 };
 
+
+// A FNTypeDef w/ associated parameters
+struct BoundFNTypeDef {
+	BoundFNTypeDef() = delete;
+
+	BoundFNTypeDef(const uint8_t numArgs) : 
+		params(JITCall::Parameters::AllocParameters(numArgs)) {}
+
+	FNTypeDef typeDef;
+
+	// holds param values
+	std::unique_ptr<JITCall::Parameters> params;
+};
+
 std::optional<FNTypeDef> regex_typedef(std::string input) {
-	//"([a-zA-Z_][a-zA-Z0-9_*]*)\s*(?:[a-zA-Z_][a-zA-Z0-9_]*)?\s*\((.*)\)" ex: void (int a, int*,int64_t ,int *b, char)
-	std::regex fnTypeDefRgx("([a-zA-Z_][a-zA-Z0-9_*]*)\\s*(?:[a-zA-Z_][a-zA-Z0-9_]*)?\\s*\\((.*)\\)");
+	//"([a-zA-Z_][a-zA-Z0-9_*]*)\s*(?:([a-zA-Z_][a-zA-Z0-9_*]*)?\s*)?(?:[a-zA-Z_][a-zA-Z0-9_]*)?\s*\((.*)\)" 
+    //ex: void (int a, int*,int64_t ,int *b, char) or void stdcall (int a, int*,int64_t ,int *b, char)
+	std::regex fnTypeDefRgx("([a-zA-Z_][a-zA-Z0-9_*]*)\\s*(?:([a-zA-Z_][a-zA-Z0-9_*]*)?\\s*)?(?:[a-zA-Z_][a-zA-Z0-9_]*)?\\s*\\((.*)\\)");
+	                         
 	std::smatch matches;
 
 	if (std::regex_search(input, matches, fnTypeDefRgx)) {
 		FNTypeDef functionDefinition;
-		functionDefinition.retType = matches[1].str();
+		functionDefinition.retType = trim_copy(matches[1].str());
+		functionDefinition.callConv = trim_copy(matches[2].str());
 
-		auto params = matches[2].str();
+		// if none specified, use fastcall for x64 or cdecl for x86. These are ABI defined defaults
+		if (functionDefinition.callConv.length() == 0) {
+			functionDefinition.callConv = sizeof(char*) == 4 ? "cdecl" : "fastcall";
+		}
+		auto params = matches[3].str();
 
 		// split the arguments, they are all captured as one big group
 		for (std::string argStr : split(params, ',')) {
@@ -207,24 +229,19 @@ void printUsage(clipp::group& cli, char* argv[]) {
 	std::cout << clipp::make_man_page(cli, argv[0]) << std::endl;
 }
 
-// Represents a single jit'd stub & it's arguments
-struct JITTypeDef {
-	JITTypeDef(const uint8_t numArgs) : params(JITCall::Parameters::AllocParameters(numArgs)) {
+struct CommandLineInput {
+	std::vector<BoundFNTypeDef> boundFunctions;
 
-	}
-
-	// holds jitted stub
-	std::vector<std::string> argTypes;
-
-	std::string retType;
-
-	// holds param values
-	std::unique_ptr<JITCall::Parameters> params;
+	// boundFunction idx -> export name
+	std::map<uint8_t, std::string> exportFnMap; 
+	std::string dllPath;
 };
 
-std::vector<JITTypeDef> parseFunctions(int argc, char* argv[]) {
-	std::vector<JITTypeDef> functions;
+std::optional<CommandLineInput> parseCommandLine(int argc, char* argv[]) {
+	CommandLineInput commandlineInput;
 
+	std::string cmdInputFile;
+	std::vector<std::string> cmdFnExport;
 	std::vector<std::string> cmdFnTypeDef;
 	std::vector<std::vector<std::string>> cmdFnArgs;
 	
@@ -232,16 +249,21 @@ std::vector<JITTypeDef> parseFunctions(int argc, char* argv[]) {
 	const uint8_t fnMaxCount = 5;
 	cmdFnArgs.resize(fnMaxCount);
 	cmdFnTypeDef.resize(fnMaxCount);
+	cmdFnExport.resize(fnMaxCount);
 
 	// accepts a list of typedes then their arguments
 	auto cli = clipp::group{};
+	cli.push_back(clipp::option("-i") & clipp::value("inputFilePath", cmdInputFile));
+
 	for (uint8_t i = 0; i < fnMaxCount; i++) {
 		cli.push_back(std::move(
-			clipp::option("-f" + std::to_string(i + 1), "--func" + std::to_string(i + 1)) & clipp::value("typedef", cmdFnTypeDef[i]) & clipp::values("args", cmdFnArgs[i])
+			clipp::option("-f" + std::to_string(i + 1), "--func" + std::to_string(i + 1)) & clipp::value("export", cmdFnExport[i]) & clipp::value("typedef", cmdFnTypeDef[i]) & clipp::values("args", cmdFnArgs[i])
 		));
 	}
 
 	if (parse(argc, argv, cli)) {
+		commandlineInput.dllPath = cmdInputFile;
+
 		// for each typedef
 		for (uint8_t i = 0; i < cmdFnTypeDef.size(); i++) {
 			std::string typeDef = cmdFnTypeDef[i];
@@ -253,31 +275,30 @@ std::vector<JITTypeDef> parseFunctions(int argc, char* argv[]) {
 			if (auto fnDef = regex_typedef(typeDef)) {
 				if (fnDef->argTypes.size() != args.size()) {
 					std::cout << "invalid parameter count supplied to function: " + std::to_string(i) << " exiting" << std::endl;
-					return std::vector<JITTypeDef>();
+					return {};
 				}
 
 				std::cout << typeDef << " ";
 				// for each of the argument types, reinterpret the string data for that type
-				JITTypeDef jitTypeDef((uint8_t)fnDef->argTypes.size());
+				BoundFNTypeDef jitTypeDef((uint8_t)fnDef->argTypes.size());
+				jitTypeDef.typeDef = *fnDef;
 
 				for (uint8_t j = 0; j < fnDef->argTypes.size(); j++) {
 					std::string argType = fnDef->argTypes[j];
-					jitTypeDef.argTypes.push_back(argType);
-
 					std::cout << argType << " " << args[j];
 
 					// pack all types into a uint64_t
 					uint64_t argBuf;
 					if (!formatType(argType, args[j], &argBuf)) {
 						std::cout << "failed to parse argument with given type" << std::endl;
-						return std::vector<JITTypeDef>();
+						return {};
 					}
 
 					jitTypeDef.params->setArg(j, argBuf);
 				}
 
-				jitTypeDef.retType = fnDef->retType;
-				functions.push_back(std::move(jitTypeDef));
+				commandlineInput.boundFunctions.push_back(std::move(jitTypeDef));
+				commandlineInput.exportFnMap[i] = cmdFnExport[i];
 				std::cout << std::endl;
 			}
 			else {
@@ -288,5 +309,5 @@ std::vector<JITTypeDef> parseFunctions(int argc, char* argv[]) {
 		printUsage(cli, argv);
 	}
 
-	return functions;
+	return commandlineInput;
 }

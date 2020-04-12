@@ -45,11 +45,15 @@ as they reference another area of memory, we don't want dangling pointers so we 
 pointed too and keep it alive within this structure too. These are shared_ptrs so they die when all references
 to the backing memory dies (this is not true if you store a ptr value via getArg manually).
 */
-#pragma pack(1) 
+
 class JITCall {
 public:
 	// Do not modify this structure at all. There's alot of nuance
-	struct Parameters {
+    #pragma pack(1) 
+	class Parameters {
+	public:
+		Parameters() = delete;
+
 		static Parameters* AllocParameters(const uint8_t numArgs) {
 			auto params = (Parameters*)new uint64_t[numArgs];
 			memset(params, 0, sizeof(uint64_t) * numArgs);
