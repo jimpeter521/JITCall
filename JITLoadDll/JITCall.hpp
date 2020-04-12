@@ -45,10 +45,15 @@ as they reference another area of memory, we don't want dangling pointers so we 
 pointed too and keep it alive within this structure too. These are shared_ptrs so they die when all references
 to the backing memory dies (this is not true if you store a ptr value via getArg manually).
 */
+
 class JITCall {
 public:
 	// Do not modify this structure at all. There's alot of nuance
-	struct Parameters {
+    #pragma pack(1) 
+	class Parameters {
+	public:
+		Parameters() = delete;
+
 		static Parameters* AllocParameters(const uint8_t numArgs) {
 			auto params = (Parameters*)new uint64_t[numArgs];
 			memset(params, 0, sizeof(uint64_t) * numArgs);
@@ -66,7 +71,7 @@ public:
 		}
 
 		// asm depends on this specific type
-		volatile uint64_t m_arguments[1];
+		volatile uint64_t m_arguments;
 
 		/*
 		* Flexible array members like above are not valid in C++ and are U.B. However, we make
@@ -79,7 +84,7 @@ public:
 	private:
 		// must be char* for aliasing rules to work when reading back out
 		char* getArgPtr(const uint8_t idx) {
-			return (char*)&m_arguments[idx];
+			return ((char*)&m_arguments) + sizeof(uint64_t) * idx;
 		}
 	};
 

@@ -1,87 +1,62 @@
 #include "JITCall.hpp"
-#include "CommandParser.hpp"
-#include "MainWindow.hpp"
+#include "CmdParser/parser.hpp"
 
+#include <string>
 #include <stdio.h>
 
-int test(int i, float j) {
-	printf("One:%d Two:%f\n", i, j);
-	return 0;
-}
-
 // Represents a single jit'd stub & it's execution environment
-struct JITEnv {
-	JITEnv() : ptrParamMemory() {
-		call = nullptr;
+class JITEnv {
+public:
+	JITEnv(BoundFNTypeDef&& boundFn, const uint64_t exportAddr) : boundFn(std::move(boundFn)) {
+		jit = std::make_unique<JITCall>((char*)exportAddr);
 	}
 
-	// holds jit runtime and builder
+	void invokeJit(const bool insertBP) {
+		call = jit->getJitFunc(boundFn.typeDef.retType, boundFn.typeDef.argTypes, boundFn.typeDef.callConv, insertBP);
+	}
+
+	// holds jit runtime and builder (allocated runtime environment)
 	std::unique_ptr<JITCall> jit;
 
-	// holds jitted stub
+	// holds jitted stub (final asm stub)
 	JITCall::tJitCall call;
 
-	// holds params;
-	std::unique_ptr<JITCall::Parameters> params;
-
-	std::vector<std::shared_ptr<char>> ptrParamMemory;
+	// holds the function def + allocated parameters
+	BoundFNTypeDef boundFn;
 };
 
-
-/* WARNING: AsmJit MUST have ASMJIT_STATIC set and use /MT or /MTd for static linking
-*  due to the fact that the source code is embedded. This is an artifact of our project structure
-*/
-int main()
+int main(int argc, char* argv[])
 {
-	Command cmdParser(GetCommandLineA());
+	// Parse cmd line into function objects
+	auto cmdLine = parseCommandLine(argc, argv);
+	if(!cmdLine) {
+		std::cout << "error parsing commandline, exiting" << std::endl;
+		return 1;
+	}
+
 	std::vector<JITEnv> jitEnvs;
+	const bool insertBP = false;
 
-	std::string dllPath = "";
-	HMODULE loadedModule = NULL;
-	MainWindow window;
-	window.OnFileChosen([&](std::string path) {
-		std::cout << "File Chosen: " << path << std::endl;
-		dllPath = path;
+	HMODULE loadedModule = LoadLibraryA(cmdLine->dllPath.c_str());
+	for (uint8_t i = 0; i < cmdLine->exportFnMap.size(); i++) {
+		std::string exportName = cmdLine->exportFnMap.at(i);
+		uint64_t exportAddr = (uint64_t)((char*)GetProcAddress(loadedModule, exportName.c_str()));
 
-		// actally load
-		loadedModule = LoadLibraryA(dllPath.c_str());
-		return (uint64_t)loadedModule;
-	});
+		std::cout << "[-] Adding JIT Stub for Export: " << exportName << " at: " << std::hex << exportAddr << std::dec << " ..." << std::endl;
 
-	window.OnNewFunction([&](const std::vector<FunctionEditor::State::ParamState>& paramStates, const char* retType, const char* exportName, const char* callConv, bool insertBP) {
-		uint64_t exportAddr = (uint64_t)((char*)GetProcAddress(loadedModule, exportName));
-		std::cout << "Export: " << exportName << " " << std::hex<<  exportAddr  << std::dec << std::endl;
-		
-		JITEnv env;
-		env.jit = std::make_unique<JITCall>((char*)exportAddr);
-		env.params.reset(JITCall::Parameters::AllocParameters((uint8_t)paramStates.size()));
+		JITEnv env(std::move(cmdLine->boundFunctions.at(i)), exportAddr);
+		env.invokeJit(insertBP);
 
-		// build param list of types from GUI state
-		std::vector<std::string> paramTypes;
-		for (uint8_t i = 0; i < paramStates.size(); i++) {
-			auto pstate = paramStates.at(i);
-
-			// transfer ownership of backing memory so we don't have dangling references
-			if (pstate.isPtrType()) {
-				env.ptrParamMemory.emplace_back(pstate.m_ptrParamMemory);
-			}
-
-			paramTypes.push_back(pstate.type);
-			env.params->setArg<uint64_t>(i, pstate.getPacked());
-		}
-
-		env.call = env.jit->getJitFunc(retType, paramTypes, callConv, insertBP);	
 		jitEnvs.push_back(std::move(env));
-		std::cout << "Added a new JIT call" << std::endl;
-	});
-
-	window.InitWindow();
-
+		std::cout << "[+] Done." << std::endl;
+	}
+	
 	// Invoke in order
 	for(JITEnv& env : jitEnvs) {
-		env.call(env.params.get());
+		env.call(env.boundFn.params.get());
 	}
 	
 	getchar();
+	return 0;
 }
 
