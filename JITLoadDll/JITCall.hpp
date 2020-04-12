@@ -66,7 +66,7 @@ public:
 		}
 
 		// asm depends on this specific type
-		volatile uint64_t m_arguments[1];
+		volatile uint64_t m_arguments;
 
 		/*
 		* Flexible array members like above are not valid in C++ and are U.B. However, we make
@@ -79,7 +79,7 @@ public:
 	private:
 		// must be char* for aliasing rules to work when reading back out
 		char* getArgPtr(const uint8_t idx) {
-			return (char*)&m_arguments[idx];
+			return ((char*)&m_arguments) + sizeof(uint64_t) * idx;
 		}
 	};
 

@@ -176,8 +176,8 @@ std::map<std::string, DataTypeInfo> typeFormats{
 	{"double", {sizeof(double), "%lf"}}
 };
 
-bool formatType(std::string type, std::string data, char* outData) {
-	char buf[64];
+bool formatType(std::string type, std::string data, uint64_t* outData) {
+	memset(outData, 0, sizeof(uint64_t));
 
 	// if any type is ptr, make it the arch's int ptr type
 	if (type.find("*") != std::string::npos) {
@@ -188,12 +188,10 @@ bool formatType(std::string type, std::string data, char* outData) {
 		return false;
 
 	DataTypeInfo typeInfo = typeFormats.at(type);
-	bool success = sscanf_s(data.c_str(), typeInfo.formatStr.c_str(), &buf[0]) == 1;
+	bool success = sscanf_s(data.c_str(), typeInfo.formatStr.c_str(), (char*)outData) == 1;
 	if (!success)
 		return false;
 
-	memset(outData, 0, 64);
-	memcpy(outData, buf, typeInfo.size);
 	return true;
 }
 
@@ -210,20 +208,22 @@ void printUsage(clipp::group& cli, char* argv[]) {
 }
 
 // Represents a single jit'd stub & it's arguments
-struct JITFunction {
-	JITFunction() {
-		call = nullptr;
+struct JITTypeDef {
+	JITTypeDef(const uint8_t numArgs) : params(JITCall::Parameters::AllocParameters(numArgs)) {
+
 	}
 
 	// holds jitted stub
-	JITCall::tJitCall call;
+	std::vector<std::string> argTypes;
 
-	// holds params;
+	std::string retType;
+
+	// holds param values
 	std::unique_ptr<JITCall::Parameters> params;
 };
 
-std::vector<JITFunction> parseFunctions(int argc, char* argv[]) {
-	std::vector<JITFunction> functions;
+std::vector<JITTypeDef> parseFunctions(int argc, char* argv[]) {
+	std::vector<JITTypeDef> functions;
 
 	std::vector<std::string> cmdFnTypeDef;
 	std::vector<std::vector<std::string>> cmdFnArgs;
@@ -233,6 +233,7 @@ std::vector<JITFunction> parseFunctions(int argc, char* argv[]) {
 	cmdFnArgs.resize(fnMaxCount);
 	cmdFnTypeDef.resize(fnMaxCount);
 
+	// accepts a list of typedes then their arguments
 	auto cli = clipp::group{};
 	for (uint8_t i = 0; i < fnMaxCount; i++) {
 		cli.push_back(std::move(
@@ -241,29 +242,42 @@ std::vector<JITFunction> parseFunctions(int argc, char* argv[]) {
 	}
 
 	if (parse(argc, argv, cli)) {
+		// for each typedef
 		for (uint8_t i = 0; i < cmdFnTypeDef.size(); i++) {
 			std::string typeDef = cmdFnTypeDef[i];
 			std::vector<std::string> args = cmdFnArgs[i];
 			if (!typeDef.size())
 				break;
 
+			// parse the typedef arg types via regex
 			if (auto fnDef = regex_typedef(typeDef)) {
 				if (fnDef->argTypes.size() != args.size()) {
 					std::cout << "invalid parameter count supplied to function: " + std::to_string(i) << " exiting" << std::endl;
-					return std::vector<JITFunction>();
+					return std::vector<JITTypeDef>();
 				}
 
 				std::cout << typeDef << " ";
+				// for each of the argument types, reinterpret the string data for that type
+				JITTypeDef jitTypeDef((uint8_t)fnDef->argTypes.size());
+
 				for (uint8_t j = 0; j < fnDef->argTypes.size(); j++) {
 					std::string argType = fnDef->argTypes[j];
+					jitTypeDef.argTypes.push_back(argType);
+
 					std::cout << argType << " " << args[j];
 
-					char argBuf[64];
-					if (!formatType(argType, args[j], argBuf)) {
+					// pack all types into a uint64_t
+					uint64_t argBuf;
+					if (!formatType(argType, args[j], &argBuf)) {
 						std::cout << "failed to parse argument with given type" << std::endl;
-						return std::vector<JITFunction>();
+						return std::vector<JITTypeDef>();
 					}
+
+					jitTypeDef.params->setArg(j, argBuf);
 				}
+
+				jitTypeDef.retType = fnDef->retType;
+				functions.push_back(std::move(jitTypeDef));
 				std::cout << std::endl;
 			}
 			else {
